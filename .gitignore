@@ -27,6 +27,9 @@ go.work.sum
 # Editor/IDE
 .vscode/
 
-
 # Some nix shit
 .gopath/
+
+# air - go hot reloading
+tmp/
+testdata/
