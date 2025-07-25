@@ -24,3 +24,69 @@ func (q *Queries) CreateCollection(ctx context.Context, name string) (Collection
 	)
 	return i, err
 }
+
+const deleteCollection = `-- name: DeleteCollection :exec
+DELETE FROM collections
+WHERE id = ?
+`
+
+func (q *Queries) DeleteCollection(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteCollection, id)
+	return err
+}
+
+const getAllCollections = `-- name: GetAllCollections :many
+SELECT id, name, created_at, updated_at FROM collections
+`
+
+func (q *Queries) GetAllCollections(ctx context.Context) ([]Collection, error) {
+	rows, err := q.db.QueryContext(ctx, getAllCollections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Collection
+	for rows.Next() {
+		var i Collection
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateCollectionName = `-- name: UpdateCollectionName :one
+UPDATE collections
+SET name = ?
+WHERE id = ?
+RETURNING id, name, created_at, updated_at
+`
+
+type UpdateCollectionNameParams struct {
+	Name string `db:"name" json:"name"`
+	ID   int64  `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateCollectionName(ctx context.Context, arg UpdateCollectionNameParams) (Collection, error) {
+	row := q.db.QueryRowContext(ctx, updateCollectionName, arg.Name, arg.ID)
+	var i Collection
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
