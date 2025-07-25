@@ -116,12 +116,16 @@ func GenerateRequestID() string {
 	return fmt.Sprintf("req_%d", time.Now().UnixNano())
 }
 
+type contextKey string
+
+const requestIDKey contextKey = "request_id"
+
 func ContextWithRequestID(ctx context.Context, requestID string) context.Context {
-	return context.WithValue(ctx, "request_id", requestID)
+	return context.WithValue(ctx, requestIDKey, requestID)
 }
 
 func RequestIDFromContext(ctx context.Context) string {
-	if reqID := ctx.Value("request_id"); reqID != nil {
+	if reqID := ctx.Value(requestIDKey); reqID != nil {
 		if id, ok := reqID.(string); ok {
 			return id
 		}

@@ -98,7 +98,11 @@ func main() {
 		LogFilePath: LOGPATH,
 		Verbose:     *verbose,
 	})
-	defer log.Global().Close()
+	defer func() {
+		if err := log.Global().Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to close logger: %v\n", err)
+		}
+	}()
 
 	log.Info("starting req application")
 
