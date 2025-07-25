@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
 	"github.com/maniac-en/req/internal/log"
 	_ "github.com/mattn/go-sqlite3"
@@ -31,7 +32,8 @@ var (
 )
 
 type Config struct {
-	DB *database.Queries
+	DB          *database.Queries
+	Collections *collections.CollectionsManager
 }
 
 func initPaths() error {
@@ -111,17 +113,15 @@ func main() {
 		log.Fatal("failed to run migrations", "error", err)
 	}
 
-	// create database client
+	// create database client and collections manager
 	db := database.New(DB)
-	cfg := Config{
-		DB: db,
+	collectionsManager := collections.NewCollectionsManager(db)
+	
+	_ = &Config{
+		DB:          db,
+		Collections: collectionsManager,
 	}
 
-	// test database functionality
-	_, err := cfg.DB.CreateCollection(context.Background(), "testing")
-	if err != nil {
-		log.Fatal("failed to create test collection", "error", err)
-	}
-
+	log.Info("application initialized", "components", []string{"database", "collections", "logging"})
 	log.Info("application started successfully")
 }
