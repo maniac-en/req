@@ -5,6 +5,7 @@ go 1.24.4
 require (
 	github.com/mattn/go-sqlite3 v1.14.29
 	github.com/pressly/goose/v3 v3.24.3
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
