@@ -61,7 +61,7 @@ func TestLoggerInitialization(t *testing.T) {
 
 			// cleanup
 			if tt.config.LogFilePath != "" {
-				os.Remove(tt.config.LogFilePath)
+				_ = os.Remove(tt.config.LogFilePath)
 			}
 		})
 	}
@@ -106,7 +106,7 @@ func TestLogLevels(t *testing.T) {
 		t.Error("should be enabled for warn level")
 	}
 
-	handler.Handle(context.Background(), warnRecord)
+	_ = handler.Handle(context.Background(), warnRecord)
 	output := buf.String()
 	if !strings.Contains(output, "warn message") {
 		t.Error("should contain warn message")
@@ -115,10 +115,10 @@ func TestLogLevels(t *testing.T) {
 
 func TestMultiHandler(t *testing.T) {
 	var buf1, buf2 bytes.Buffer
-	
+
 	handler1 := NewDualHandler(&buf1, false, slog.LevelInfo)
 	handler2 := NewDualHandler(&buf2, false, slog.LevelInfo)
-	
+
 	multiHandler := NewMultiHandler(handler1, handler2)
 
 	record := slog.NewRecord(time.Now(), slog.LevelInfo, "multi test", 0)
@@ -230,7 +230,7 @@ func TestLoggerClose(t *testing.T) {
 }
 
 func TestWithRequestID(t *testing.T) {
-	// reset global logger  
+	// reset global logger
 	resetOnce()
 	globalLogger = nil
 
