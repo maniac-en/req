@@ -174,7 +174,7 @@ func TestGlobalLoggerFunctions(t *testing.T) {
 	globalLogger = nil
 
 	tempFile := filepath.Join(os.TempDir(), "test_global.log")
-	defer os.Remove(tempFile)
+	defer func() { _ = os.Remove(tempFile) }()
 
 	Initialize(Config{
 		Level:       slog.LevelDebug,
@@ -211,7 +211,7 @@ func TestGlobalLoggerFunctions(t *testing.T) {
 
 func TestLoggerClose(t *testing.T) {
 	tempFile := filepath.Join(os.TempDir(), "test_close.log")
-	defer os.Remove(tempFile)
+	defer func() { _ = os.Remove(tempFile) }()
 
 	// reset global logger
 	resetOnce()
