@@ -15,7 +15,4 @@ CREATE TABLE endpoints (
 
 -- +goose Down
 DROP TABLE endpoints;
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
