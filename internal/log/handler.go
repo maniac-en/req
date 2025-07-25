@@ -29,7 +29,7 @@ func (h *DualHandler) Enabled(ctx context.Context, level slog.Level) bool {
 func (h *DualHandler) Handle(ctx context.Context, record slog.Record) error {
 	// format the log message
 	output := h.formatRecord(record)
-	
+
 	// write to output
 	_, err := fmt.Fprintln(h.output, output)
 	return err
@@ -39,7 +39,7 @@ func (h *DualHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	newAttrs := make([]slog.Attr, len(h.attrs)+len(attrs))
 	copy(newAttrs, h.attrs)
 	copy(newAttrs[len(h.attrs):], attrs)
-	
+
 	return &DualHandler{
 		output: h.output,
 		level:  h.level,
@@ -52,7 +52,7 @@ func (h *DualHandler) WithGroup(name string) slog.Handler {
 	newGroups := make([]string, len(h.groups)+1)
 	copy(newGroups, h.groups)
 	newGroups[len(h.groups)] = name
-	
+
 	return &DualHandler{
 		output: h.output,
 		level:  h.level,
@@ -99,7 +99,6 @@ func (h *DualHandler) formatHuman(record slog.Record) string {
 
 	return output
 }
-
 
 type MultiHandler struct {
 	handlers []slog.Handler

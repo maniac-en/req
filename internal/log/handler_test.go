@@ -26,7 +26,7 @@ func TestDualHandlerColoring(t *testing.T) {
 			handler := NewDualHandler(&buf, false, slog.LevelDebug)
 
 			record := slog.NewRecord(time.Now(), tt.level, "test", 0)
-			handler.Handle(context.Background(), record)
+			_ = handler.Handle(context.Background(), record)
 
 			output := buf.String()
 			if !strings.Contains(output, tt.expected) {
@@ -39,7 +39,7 @@ func TestDualHandlerColoring(t *testing.T) {
 func TestDualHandlerWithAttrs(t *testing.T) {
 	var buf bytes.Buffer
 	handler := NewDualHandler(&buf, false, slog.LevelInfo)
-	
+
 	// add some attributes to the handler
 	handlerWithAttrs := handler.WithAttrs([]slog.Attr{
 		slog.String("service", "test"),
@@ -49,7 +49,7 @@ func TestDualHandlerWithAttrs(t *testing.T) {
 	record := slog.NewRecord(time.Now(), slog.LevelInfo, "test message", 0)
 	record.Add("request_id", "123")
 
-	handlerWithAttrs.Handle(context.Background(), record)
+	_ = handlerWithAttrs.Handle(context.Background(), record)
 
 	output := buf.String()
 	if !strings.Contains(output, "service=test") {
@@ -66,7 +66,7 @@ func TestDualHandlerWithAttrs(t *testing.T) {
 func TestDualHandlerWithGroup(t *testing.T) {
 	var buf bytes.Buffer
 	handler := NewDualHandler(&buf, false, slog.LevelInfo)
-	
+
 	groupHandler := handler.WithGroup("http")
 	if groupHandler == nil {
 		t.Error("WithGroup should return a handler")
@@ -80,11 +80,11 @@ func TestDualHandlerWithGroup(t *testing.T) {
 
 func TestMultiHandlerEnabled(t *testing.T) {
 	var buf1, buf2 bytes.Buffer
-	
+
 	// one handler with INFO level, another with ERROR level
 	handler1 := NewDualHandler(&buf1, false, slog.LevelInfo)
 	handler2 := NewDualHandler(&buf2, false, slog.LevelError)
-	
+
 	multiHandler := NewMultiHandler(handler1, handler2)
 
 	// should be enabled for INFO (handler1 accepts it)
@@ -105,19 +105,19 @@ func TestMultiHandlerEnabled(t *testing.T) {
 
 func TestMultiHandlerWithAttrs(t *testing.T) {
 	var buf1, buf2 bytes.Buffer
-	
+
 	handler1 := NewDualHandler(&buf1, false, slog.LevelInfo)
 	handler2 := NewDualHandler(&buf2, false, slog.LevelInfo)
-	
+
 	multiHandler := NewMultiHandler(handler1, handler2)
-	
+
 	// add attributes
 	handlerWithAttrs := multiHandler.WithAttrs([]slog.Attr{
 		slog.String("component", "test"),
 	})
 
 	record := slog.NewRecord(time.Now(), slog.LevelInfo, "test", 0)
-	handlerWithAttrs.Handle(context.Background(), record)
+	_ = handlerWithAttrs.Handle(context.Background(), record)
 
 	output1 := buf1.String()
 	output2 := buf2.String()
@@ -132,10 +132,10 @@ func TestMultiHandlerWithAttrs(t *testing.T) {
 
 func TestMultiHandlerWithGroup(t *testing.T) {
 	var buf1, buf2 bytes.Buffer
-	
+
 	handler1 := NewDualHandler(&buf1, false, slog.LevelInfo)
 	handler2 := NewDualHandler(&buf2, false, slog.LevelInfo)
-	
+
 	multiHandler := NewMultiHandler(handler1, handler2)
 	groupHandler := multiHandler.WithGroup("database")
 
@@ -154,8 +154,8 @@ func TestHandlerTimestampFormat(t *testing.T) {
 	now := time.Date(2025, 1, 15, 14, 30, 45, 0, time.UTC)
 	record := slog.NewRecord(now, slog.LevelInfo, "timestamp test", 0)
 
-	handler.Handle(context.Background(), record)
-	
+	_ = handler.Handle(context.Background(), record)
+
 	output := buf.String()
 	expected := "2025-01-15 14:30:45"
 	if !strings.Contains(output, expected) {
