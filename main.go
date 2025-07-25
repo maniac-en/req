@@ -58,6 +58,11 @@ func runMigrations() error {
 	if err != nil {
 		return fmt.Errorf("error opening database: %w", err)
 	}
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			log.Error("failed to close migration database connection", "error", closeErr)
+		}
+	}()
 
 	// create sub-filesystem for migrations
 	migrationSubFS, err := fs.Sub(migrationsFS, filepath.Join("db", "migrations"))
@@ -76,7 +81,13 @@ func runMigrations() error {
 	if err != nil {
 		return fmt.Errorf("error running migrations: %w", err)
 	}
-	DB = db
+
+	// open a new connection for the global DB
+	globalDB, err := sql.Open("sqlite3", DBPATH)
+	if err != nil {
+		return fmt.Errorf("error opening global database connection: %w", err)
+	}
+	DB = globalDB
 	return nil
 }
 
@@ -116,12 +127,13 @@ func main() {
 	// create database client and collections manager
 	db := database.New(DB)
 	collectionsManager := collections.NewCollectionsManager(db)
-	
-	_ = &Config{
+
+	config := &Config{
 		DB:          db,
 		Collections: collectionsManager,
 	}
 
 	log.Info("application initialized", "components", []string{"database", "collections", "logging"})
+	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil)
 	log.Info("application started successfully")
 }
