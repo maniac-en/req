@@ -10,7 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/tui"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
 )
@@ -86,5 +88,21 @@ func main() {
 	_, err := cfg.DB.CreateCollection(context.Background(), "testing")
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	// create tabs and model
+	tabs := tui.InitTabs()
+	model, err := tui.InitModel(tabs)
+	// its really hard for this to throw an error rn, but i want this here
+	// in case our programme is able to create some creative errors on init
+	// in the future
+	if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
+	p := tea.NewProgram(model, tea.WithAltScreen())
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error: %v", err)
+		os.Exit(1)
 	}
 }
