@@ -128,12 +128,12 @@ func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData
 	if err != nil {
 		return HistoryEntity{}, fmt.Errorf("failed to marshal request headers: %w", err)
 	}
-	
+
 	queryParams, err := json.Marshal(data.QueryParams)
 	if err != nil {
 		return HistoryEntity{}, fmt.Errorf("failed to marshal query params: %w", err)
 	}
-	
+
 	responseHeaders, err := json.Marshal(data.ResponseHeaders)
 	if err != nil {
 		return HistoryEntity{}, fmt.Errorf("failed to marshal response headers: %w", err)
@@ -184,4 +184,3 @@ func validateExecutionData(data ExecutionData) error {
 
 	return nil
 }
-
