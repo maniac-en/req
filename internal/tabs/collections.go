@@ -4,10 +4,24 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type collectionsOpts struct {
-	options []string
+	options []OptionPair
+}
+
+type OptionPair struct {
+	Label string
+	Value string
+}
+
+var opts = []OptionPair{
+	{Label: "Collection 1", Value: "1"},
+	{Label: "Collection 2", Value: "2"},
+	{Label: "Collection 3", Value: "3"},
+	{Label: "Collection 4", Value: "4"},
+	{Label: "Collection 5", Value: "5"},
 }
 
 type CollectionsTab struct {
@@ -28,12 +42,7 @@ func (c *CollectionsTab) fetchOptions() tea.Cmd {
 	// this is here for now to replicate what a db call would look like
 	return tea.Tick(time.Millisecond*1000, func(time.Time) tea.Msg {
 		return collectionsOpts{
-			options: []string{
-				"Collection 1",
-				"Collection 2",
-				"Collection 3",
-				"Collection 4",
-			},
+			options: opts,
 		}
 	})
 }
@@ -69,14 +78,30 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case collectionsOpts:
 		c.selectUI.SetOptions(msg.options)
+		c.loaded = true
 	default:
 		c.selectUI, cmd = c.selectUI.Update(msg)
 	}
+
 	return c, cmd
 }
 
 func (c *CollectionsTab) View() string {
-	content := "Select Collection:\n\n" + c.selectUI.View()
 
-	return content
+	if c.selectUI.IsLoading() {
+		return c.selectUI.View()
+	}
+
+	selectContent := c.selectUI.View()
+
+	style := lipgloss.NewStyle().PaddingRight(4)
+
+	if !c.selectUI.IsLoading() && len(c.selectUI.list.Items()) > 0 {
+		title := "Select Collection:\n\n"
+		instructions := "\n ↑/k - up | ↓/j - down | / - search | + - add collection | enter - select"
+		return title + style.Render(selectContent) + instructions
+	}
+
+	return style.Render(selectContent)
+
 }
