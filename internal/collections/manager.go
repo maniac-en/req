@@ -96,10 +96,29 @@ func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 }
 
 func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, error) {
-	log.Debug("listing all collections")
-	collections, err := c.DB.GetAllCollections(ctx)
+	log.Debug("listing all collections with default pagination")
+	paginated, err := c.ListPaginated(ctx, 50, 0)
 	if err != nil {
-		log.Error("failed to list collections", "error", err)
+		return nil, err
+	}
+	return paginated.Collections, nil
+}
+
+func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int64) (*PaginatedCollections, error) {
+	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
+
+	total, err := c.DB.CountCollections(ctx)
+	if err != nil {
+		log.Error("failed to count collections", "error", err)
+		return nil, err
+	}
+
+	collections, err := c.DB.GetCollectionsPaginated(ctx, database.GetCollectionsPaginatedParams{
+		Limit:  limit,
+		Offset: offset,
+	})
+	if err != nil {
+		log.Error("failed to get paginated collections", "limit", limit, "offset", offset, "error", err)
 		return nil, err
 	}
 
@@ -108,6 +127,17 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 		entities[i] = CollectionEntity{Collection: collection}
 	}
 
-	log.Debug("listed collections", "count", len(entities))
-	return entities, nil
+	hasNext := offset+int64(len(collections)) < total
+	hasPrev := offset > 0
+
+	log.Debug("retrieved paginated collections", "total", total, "returned", len(entities), "has_next", hasNext, "has_prev", hasPrev)
+
+	return &PaginatedCollections{
+		Collections: entities,
+		Total:       total,
+		Offset:      offset,
+		Limit:       limit,
+		HasNext:     hasNext,
+		HasPrev:     hasPrev,
+	}, nil
 }

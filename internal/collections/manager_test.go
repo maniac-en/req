@@ -3,6 +3,7 @@ package collections
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"testing"
 
 	"github.com/maniac-en/req/internal/crud"
@@ -92,6 +93,39 @@ func TestCollectionsManagerCRUD(t *testing.T) {
 		}
 		if len(collections) < 2 {
 			t.Errorf("Expected at least 2 collections, got %d", len(collections))
+		}
+	})
+
+	t.Run("ListPaginated", func(t *testing.T) {
+		for i := 1; i <= 5; i++ {
+			manager.Create(ctx, fmt.Sprintf("Pagination Test %d", i))
+		}
+		
+		paginated, err := manager.ListPaginated(ctx, 2, 0)
+		if err != nil {
+			t.Fatalf("ListPaginated failed: %v", err)
+		}
+		
+		if len(paginated.Collections) != 2 {
+			t.Errorf("Expected 2 collections, got %d", len(paginated.Collections))
+		}
+		if paginated.Total < 5 {
+			t.Errorf("Expected total >= 5, got %d", paginated.Total)
+		}
+		if !paginated.HasNext {
+			t.Error("Expected HasNext to be true")
+		}
+		if paginated.HasPrev {
+			t.Error("Expected HasPrev to be false for offset 0")
+		}
+		
+		// Test second page
+		paginated2, err := manager.ListPaginated(ctx, 2, 2)
+		if err != nil {
+			t.Fatalf("ListPaginated page 2 failed: %v", err)
+		}
+		if !paginated2.HasPrev {
+			t.Error("Expected HasPrev to be true for offset > 0")
 		}
 	})
 }

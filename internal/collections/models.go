@@ -40,3 +40,12 @@ func (c CollectionEntity) GetUpdatedAt() time.Time {
 type CollectionsManager struct {
 	DB *database.Queries
 }
+
+type PaginatedCollections struct {
+	Collections []CollectionEntity `json:"collections"`
+	Total       int64              `json:"total"`
+	Offset      int64              `json:"offset"`
+	Limit       int64              `json:"limit"`
+	HasNext     bool               `json:"has_next"`
+	HasPrev     bool               `json:"has_prev"`
+}
