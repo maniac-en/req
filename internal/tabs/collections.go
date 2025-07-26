@@ -44,6 +44,10 @@ func (c *CollectionsTab) Name() string {
 	return c.name
 }
 
+func (c *CollectionsTab) Instructions() string {
+	return "\n k - up • j - down • / - search • + - add collection • enter - select • d - delete collection • e - edit collection"
+}
+
 func (c *CollectionsTab) Init() tea.Cmd {
 	c.selectUI.Focus()
 	return tea.Batch(
@@ -104,12 +108,12 @@ func (c *CollectionsTab) View() string {
 
 	selectContent := c.selectUI.View()
 
-	style := lipgloss.NewStyle().PaddingRight(4)
+	style := lipgloss.NewStyle().
+		PaddingRight(4)
 
 	if !c.selectUI.IsLoading() && len(c.selectUI.list.Items()) > 0 {
-		title := "Select Collection:\n\n"
-		instructions := "\n ↑/k - up | ↓/j - down | / - search | + - add collection | enter - select | d - delete collection | e - edit collection"
-		return title + style.Render(selectContent) + instructions
+		title := "\n\n\n\n\n\n\nSelect Collection:\n\n"
+		return title + style.Render(selectContent)
 	}
 
 	return style.Render(selectContent)

@@ -31,6 +31,10 @@ func (e *EditCollectionTab) Name() string {
 	return e.name
 }
 
+func (e *EditCollectionTab) Instructions() string {
+	return "Press Enter to create • Esc to cancel"
+}
+
 func (e *EditCollectionTab) Init() tea.Cmd {
 	return textinput.Blink
 }
@@ -89,14 +93,9 @@ func (e *EditCollectionTab) View() string {
 		Padding(1, 2).
 		MarginBottom(2)
 
-	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		MarginTop(1)
-
 	form := lipgloss.JoinVertical(lipgloss.Center,
 		titleStyle.Render("Edit Collection"),
 		inputStyle.Render(e.nameInput.View()),
-		helpStyle.Render("Press Enter to save • Esc to cancel"),
 	)
 
 	containerStyle := lipgloss.NewStyle().
