@@ -95,7 +95,11 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 		log.Error("HTTP request failed", "error", err)
 		return nil, fmt.Errorf("request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			log.Error("failed to close response body", "error", closeErr)
+		}
+	}()
 
 	duration := time.Since(start)
 
