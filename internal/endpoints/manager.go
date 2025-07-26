@@ -6,30 +6,30 @@ import (
 	"github.com/maniac-en/req/internal/database"
 )
 
-func NewEndpointsManager(db *database.Queries) *EndpointManager {
-	return &EndpointManager{DB: db}
+func NewEndpointsManager(db *database.Queries) *EndpointsManager {
+	return &EndpointsManager{DB: db}
 }
 
-func (e *EndpointManager) Create(ctx context.Context, name string) (EndpointEntity, error) {
+func (e *EndpointsManager) Create(ctx context.Context, name string) (EndpointEntity, error) {
 	return EndpointEntity{}, nil
 }
 
-func (e *EndpointManager) Read(ctx context.Context, id int64) (EndpointEntity, error) {
+func (e *EndpointsManager) Read(ctx context.Context, id int64) (EndpointEntity, error) {
 	return EndpointEntity{}, nil
 }
 
-func (e *EndpointManager) Update(ctx context.Context, id int64, name string) (EndpointEntity, error) {
+func (e *EndpointsManager) Update(ctx context.Context, id int64, name string) (EndpointEntity, error) {
 	return EndpointEntity{}, nil
 }
 
-func (e *EndpointManager) Delete(ctx context.Context, id int64) error {
+func (e *EndpointsManager) Delete(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (e *EndpointManager) List(ctx context.Context) ([]EndpointEntity, error) {
+func (e *EndpointsManager) List(ctx context.Context) ([]EndpointEntity, error) {
 	return nil, nil
 }
 
-func (e *EndpointManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedEndpoints, error) {
+func (e *EndpointsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedEndpoints, error) {
 	return nil, nil
 }

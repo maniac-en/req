@@ -37,7 +37,7 @@ func (c EndpointEntity) GetUpdatedAt() time.Time {
 	return parsed
 }
 
-type EndpointManager struct {
+type EndpointsManager struct {
 	DB *database.Queries
 }
 
