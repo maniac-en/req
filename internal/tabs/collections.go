@@ -44,6 +44,10 @@ func (c *CollectionsTab) Name() string {
 	return c.name
 }
 
+func (c *CollectionsTab) Instructions() string {
+	return "\n k - up • j - down • / - search • + - add collection • enter - select • d - delete collection • e - edit collection"
+}
+
 func (c *CollectionsTab) Init() tea.Cmd {
 	c.selectUI.Focus()
 	return tea.Batch(
@@ -73,9 +77,17 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "+":
+		case "a":
 			return c, func() tea.Msg {
 				return messages.SwitchTabMsg{TabIndex: 1}
+			}
+		case "d":
+			if selected := c.selectUI.GetSelected(); selected != "" {
+				return c, c.deleteCollection(selected)
+			}
+		case "e": // Add edit key handling
+			if selected := c.selectUI.GetSelected(); selected != "" {
+				return c, c.editCollection(selected)
 			}
 		default:
 			c.selectUI, cmd = c.selectUI.Update(msg)
@@ -96,14 +108,46 @@ func (c *CollectionsTab) View() string {
 
 	selectContent := c.selectUI.View()
 
-	style := lipgloss.NewStyle().PaddingRight(4)
+	style := lipgloss.NewStyle().
+		PaddingRight(4)
 
 	if !c.selectUI.IsLoading() && len(c.selectUI.list.Items()) > 0 {
-		title := "Select Collection:\n\n"
-		instructions := "\n ↑/k - up | ↓/j - down | / - search | + - add collection | enter - select"
-		return title + style.Render(selectContent) + instructions
+		title := "\n\n\n\n\n\n\nSelect Collection:\n\n"
+		return title + style.Render(selectContent)
 	}
 
 	return style.Render(selectContent)
 
+}
+
+func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {
+	for i, collection := range GlobalCollections {
+		if collection.Value == value {
+			GlobalCollections = append(GlobalCollections[:i], GlobalCollections[i+1:]...)
+			break
+		}
+	}
+	return c.fetchOptions()
+}
+
+func (c *CollectionsTab) editCollection(value string) tea.Cmd {
+	var label string
+	for _, collection := range GlobalCollections {
+		if collection.Value == value {
+			label = collection.Label
+			break
+		}
+	}
+
+	return tea.Batch(
+		func() tea.Msg {
+			return messages.EditCollectionMsg{
+				Label: label,
+				Value: value,
+			}
+		},
+		func() tea.Msg {
+			return messages.SwitchTabMsg{TabIndex: 2}
+		},
+	)
 }

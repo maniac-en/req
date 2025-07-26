@@ -18,6 +18,7 @@ func InitialModel() Model {
 	tabList := []tabs.Tab{
 		tabs.NewCollectionsTab(),
 		tabs.NewAddCollectionTab(),
+		tabs.NewEditCollectionTab(),
 	}
 
 	return Model{
@@ -41,6 +42,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
+	case messages.EditCollectionMsg:
+		if editTab, ok := m.tabs[2].(*tabs.EditCollectionTab); ok {
+			editTab.SetEditingCollection(msg.Label, msg.Value)
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -60,23 +67,39 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	const headerHeight = 1
+	const headerFooterHeight = 1
+	const padding = 1
 	headerText := m.tabs[m.activeTab].Name()
+	instructions := m.tabs[m.activeTab].Instructions()
 
 	headerStyle := lipgloss.NewStyle().
-		Padding(0, 2).
+		Padding(1, 0).
 		Background(lipgloss.Color("62")).
 		Foreground(lipgloss.Color("230")).
-		Height(headerHeight).
+		Height(headerFooterHeight).
 		Width(len(headerText)+10).
 		Align(lipgloss.Center, lipgloss.Top)
 
-	content := m.tabs[m.activeTab].View()
-
-	contentStyle := lipgloss.NewStyle().
-		Width(m.width).
-		Height(m.height-headerHeight).
+	footerStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("45")).
+		Width(m.width-50).
+		PaddingBottom(1).
+		Height(headerFooterHeight).
 		Align(lipgloss.Center, lipgloss.Center)
 
-	return lipgloss.JoinVertical(lipgloss.Center, headerStyle.Render(headerText), contentStyle.Render(content))
+	renderedHeader := headerStyle.Render(headerText)
+	renderedFooter := footerStyle.Render(instructions)
+
+	headerHeight := lipgloss.Height(renderedHeader)
+	footerHeight := lipgloss.Height(renderedFooter)
+
+	contentHeight := m.height - headerHeight - footerHeight
+	contentStyle := lipgloss.NewStyle().
+		Width(m.width).
+		Height(contentHeight).
+		Align(lipgloss.Center, lipgloss.Center)
+
+	content := m.tabs[m.activeTab].View()
+
+	return lipgloss.JoinVertical(lipgloss.Center, renderedHeader, contentStyle.Render(content), renderedFooter)
 }

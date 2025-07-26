@@ -15,6 +15,7 @@ var GlobalCollections = []OptionPair{
 // this is what a tab is loosely defined as
 type Tab interface {
 	Name() string
+	Instructions() string
 	Init() tea.Cmd
 	Update(tea.Msg) (Tab, tea.Cmd)
 	View() string
