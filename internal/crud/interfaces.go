@@ -1,3 +1,4 @@
+// Package crud provides generic CRUD operations for entities.
 package crud
 
 import (

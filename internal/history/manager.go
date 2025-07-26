@@ -95,7 +95,7 @@ func (h *HistoryManager) ListByCollection(ctx context.Context, collectionID int6
 	}
 
 	// Calculate pagination metadata
-	totalPages := int((total + int64(limit) - 1) / int64(limit))
+	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
 	currentPage := (offset / limit) + 1
 	hasNext := (offset + limit) < int(total)
 	hasPrev := offset > 0
@@ -123,9 +123,21 @@ func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData
 
 	log.Debug("recording execution", "method", data.Method, "url", data.URL, "status", data.StatusCode)
 
-	requestHeaders, _ := json.Marshal(data.Headers)
-	queryParams, _ := json.Marshal(data.QueryParams)
-	responseHeaders, _ := json.Marshal(data.ResponseHeaders)
+	// Marshal to JSON for database storage
+	requestHeaders, err := json.Marshal(data.Headers)
+	if err != nil {
+		return HistoryEntity{}, fmt.Errorf("failed to marshal request headers: %w", err)
+	}
+	
+	queryParams, err := json.Marshal(data.QueryParams)
+	if err != nil {
+		return HistoryEntity{}, fmt.Errorf("failed to marshal query params: %w", err)
+	}
+	
+	responseHeaders, err := json.Marshal(data.ResponseHeaders)
+	if err != nil {
+		return HistoryEntity{}, fmt.Errorf("failed to marshal response headers: %w", err)
+	}
 
 	params := database.CreateHistoryEntryParams{
 		CollectionID:    sql.NullInt64{Int64: data.CollectionID, Valid: data.CollectionID > 0},
@@ -156,14 +168,17 @@ func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData
 
 func validateExecutionData(data ExecutionData) error {
 	if err := crud.ValidateName(data.Method); err != nil {
+		log.Debug("execution validation failed: invalid method", "method", data.Method)
 		return fmt.Errorf("invalid method: %w", err)
 	}
 
 	if err := crud.ValidateName(data.URL); err != nil {
+		log.Debug("execution validation failed: invalid URL", "url", data.URL)
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	if data.StatusCode < 100 || data.StatusCode > 599 {
+		log.Debug("execution validation failed: invalid status code", "status_code", data.StatusCode)
 		return fmt.Errorf("invalid status code: %d", data.StatusCode)
 	}
 

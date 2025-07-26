@@ -16,7 +16,7 @@ func setupTestDB(t *testing.T) *database.Queries {
 		t.Fatalf("failed to open in-memory database: %v", err)
 	}
 
-	// Create history table
+	// Use same schema as migration
 	schema := `
 	CREATE TABLE history (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
