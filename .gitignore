@@ -33,3 +33,8 @@ go.work.sum
 # air - go hot reloading
 tmp/
 testdata/
+
+# Blog generation
+.pyssg/
+__pycache__/
+*.pyc
