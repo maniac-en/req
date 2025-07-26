@@ -7,7 +7,7 @@ import (
 type Tab struct {
 	Title   string
 	Content func(contentHeight, contentWidth int, model Model) string
-	Form    *huh.Form
+	Form    *huh.Select[string]
 }
 
 type Tabs struct {

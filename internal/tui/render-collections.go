@@ -1,8 +1,6 @@
 package tui
 
 import (
-	// "log"
-
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -15,8 +13,7 @@ func renderCollections(contentHeight, contentWidth int, m Model) string {
 		options = append(options, huh.NewOption(coll.Name, coll.ID))
 	}
 
-	// m.Tabs.Collections.Form = createCollectionForm(options)
-	// log.Printf("options %v", m.Tabs.Collections.Form.View())
+	m.Tabs.Collections.Form = createCollectionForm(options)
 
 	selectRender := lipgloss.NewStyle().
 		Width(contentWidth - 100).
@@ -44,15 +41,15 @@ func getCollections() []Collection {
 	return []Collection{
 		{
 			Name: "Coll1",
-			ID:   "Some_ID",
+			ID:   "Some_ID1",
 		},
 		{
 			Name: "Coll2",
-			ID:   "Some_ID",
+			ID:   "Some_ID2",
 		},
 		{
 			Name: "Coll3",
-			ID:   "Some_ID",
+			ID:   "Some_ID3",
 		},
 	}
 }

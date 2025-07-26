@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"log"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -22,6 +24,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.Width = msg.Width
 		m.Height = msg.Height
+	}
+
+	if m.ActiveTab.Title == m.Tabs.Collections.Title {
+		_, _ = m.Tabs.Collections.Form.Update(msg)
+		log.Printf("Value: %s", m.Tabs.Collections.Form.GetValue())
 	}
 
 	return m, nil
