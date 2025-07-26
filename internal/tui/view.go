@@ -11,7 +11,7 @@ func (m Model) View() string {
 
 	availableHeight := m.Height - lipgloss.Height(header) - lipgloss.Height(footer)
 
-	content := m.ActiveTab.Content(availableHeight, m.Width)
+	content := m.ActiveTab.Content(availableHeight, m.Width, m)
 
 	return lipgloss.JoinVertical(lipgloss.Left, header, content, footer)
 }

@@ -7,7 +7,6 @@ import (
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
-	// TODO: Rework the `ActiveTab` logic so it doesnt use generic numbers
 	case tea.KeyMsg:
 		switch msg.String() {
 		case m.Keybinds.Quit, m.Keybinds.KeyboardInterrupt:
@@ -17,7 +16,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case m.Keybinds.Endpoints:
 			m.ActiveTab = &m.Tabs.Endpoints
 		case m.Keybinds.Environments:
-			m.ActiveTab = &m.Tabs.Endpoints
+			m.ActiveTab = &m.Tabs.Environments
 		}
 
 	case tea.WindowSizeMsg:

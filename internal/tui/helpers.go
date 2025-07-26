@@ -2,13 +2,17 @@ package tui
 
 import "github.com/charmbracelet/huh"
 
-func (m Model) createCollectionsState() *CollectionState {
+func createCollectionForm(options []huh.Option[string]) *huh.Form {
 	var selected string
-	selectInput := huh.NewSelect[string]().
-		Value(&selected)
 
-	return &CollectionState{
-		Form:     selectInput,
-		Selected: selected,
-	}
+	formGroup := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Value(&selected).
+				Options(
+					huh.NewOption("hel", "world"),
+				),
+		),
+	)
+	return formGroup
 }

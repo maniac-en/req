@@ -1,13 +1,13 @@
 package tui
 
 import (
-	"log"
+	// "log"
 
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
 )
 
-func (m Model) renderCollections(contentHeight, contentWidth int) string {
+func renderCollections(contentHeight, contentWidth int, m Model) string {
 	collections := getCollections()
 	options := []huh.Option[string]{}
 
@@ -15,24 +15,15 @@ func (m Model) renderCollections(contentHeight, contentWidth int) string {
 		options = append(options, huh.NewOption(coll.Name, coll.ID))
 	}
 
-	collectionState, ok := m.Tabs.Collections.State.(*CollectionState)
-	if !ok {
-		log.Printf("State type: %T\n", m.Tabs.Collections.State)
-		log.Printf("Error: State is not of type CollectionState")
-		return ""
-	}
-
-	newForm := huh.NewSelect[string]().
-		Options(options...)
-
-	collectionState.Form = newForm
+	// m.Tabs.Collections.Form = createCollectionForm(options)
+	// log.Printf("options %v", m.Tabs.Collections.Form.View())
 
 	selectRender := lipgloss.NewStyle().
 		Width(contentWidth - 100).
 		Height(contentHeight - 5).
 		AlignVertical(lipgloss.Bottom).
 		BorderStyle(lipgloss.RoundedBorder()).
-		Render(collectionState.Form.View())
+		Render(m.Tabs.Collections.Form.View())
 
 	innerBox := lipgloss.NewStyle().
 		Width(contentWidth).

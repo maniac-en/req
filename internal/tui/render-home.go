@@ -3,7 +3,7 @@ package tui
 import "github.com/charmbracelet/lipgloss"
 import "github.com/charmbracelet/lipgloss/table"
 
-func (m Model) renderHome(contentHeight, contentWidth int) string {
+func renderHome(contentHeight, contentWidth int, m Model) string {
 	const logo = `
 	▗▄▄▖ ▗▄▄▄▖▗▄▄▄▖
 	▐▌ ▐▌▐▌   ▐▌ ▐▌

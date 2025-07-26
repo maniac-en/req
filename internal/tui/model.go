@@ -1,15 +1,13 @@
 package tui
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/huh"
 )
 
 type Tab struct {
 	Title   string
-	Content func(contentHeight, contentWidth int) string
-	State   interface{}
+	Content func(contentHeight, contentWidth int, model Model) string
+	Form    *huh.Form
 }
 
 type Tabs struct {
@@ -20,11 +18,16 @@ type Tabs struct {
 }
 
 type Model struct {
-	Tabs      Tabs
-	ActiveTab *Tab
-	Width     int
-	Height    int
-	Keybinds  Input
+	Tabs        Tabs
+	ActiveTab   *Tab
+	Width       int
+	Height      int
+	Keybinds    Input
+	GlobalState States
+}
+
+type States struct {
+	Collection *CollectionState
 }
 
 func InitModel() (Model, error) {
@@ -32,32 +35,30 @@ func InitModel() (Model, error) {
 		Keybinds: initKeybinds(),
 	}
 
-	model.Tabs = model.InitTabs()
+	model.Tabs = InitTabs()
 	model.ActiveTab = &model.Tabs.Home
-
-	fmt.Printf("State type in model.go: %T\n", model.Tabs.Collections.State)
 
 	return model, nil
 }
 
-func (m Model) InitTabs() Tabs {
+func InitTabs() Tabs {
 	return Tabs{
 		Home: Tab{
 			Title:   "Home",
-			Content: m.renderHome,
+			Content: renderHome,
 		},
 		Collections: Tab{
 			Title:   "Collections",
-			Content: m.renderCollections,
-			State:   m.createCollectionsState(),
+			Content: renderCollections,
+			Form:    createCollectionForm([]huh.Option[string]{}),
 		},
 		Endpoints: Tab{
 			Title:   "Endpoints",
-			Content: m.renderHome,
+			Content: renderHome,
 		},
 		Environments: Tab{
 			Title:   "Environments",
-			Content: m.renderEnvironments,
+			Content: renderEnvironments,
 		},
 	}
 }
@@ -83,6 +84,6 @@ func initKeybinds() Input {
 
 // state stuff
 type CollectionState struct {
-	Form     *huh.Select[string]
 	Selected string
+	Error    error
 }
