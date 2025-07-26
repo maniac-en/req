@@ -10,3 +10,16 @@ type Collection struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
 	UpdatedAt string `db:"updated_at" json:"updated_at"`
 }
+
+type Endpoint struct {
+	ID           int64  `db:"id" json:"id"`
+	CollectionID int64  `db:"collection_id" json:"collection_id"`
+	Name         string `db:"name" json:"name"`
+	Method       string `db:"method" json:"method"`
+	Url          string `db:"url" json:"url"`
+	Headers      string `db:"headers" json:"headers"`
+	QueryParams  string `db:"query_params" json:"query_params"`
+	RequestBody  string `db:"request_body" json:"request_body"`
+	CreatedAt    string `db:"created_at" json:"created_at"`
+	UpdatedAt    string `db:"updated_at" json:"updated_at"`
+}
