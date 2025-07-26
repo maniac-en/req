@@ -4,6 +4,10 @@
 
 package database
 
+import (
+	"database/sql"
+)
+
 type Collection struct {
 	ID        int64  `db:"id" json:"id"`
 	Name      string `db:"name" json:"name"`
@@ -22,4 +26,22 @@ type Endpoint struct {
 	RequestBody  string `db:"request_body" json:"request_body"`
 	CreatedAt    string `db:"created_at" json:"created_at"`
 	UpdatedAt    string `db:"updated_at" json:"updated_at"`
+}
+
+type History struct {
+	ID              int64          `db:"id" json:"id"`
+	CollectionID    sql.NullInt64  `db:"collection_id" json:"collection_id"`
+	CollectionName  sql.NullString `db:"collection_name" json:"collection_name"`
+	EndpointName    sql.NullString `db:"endpoint_name" json:"endpoint_name"`
+	Method          string         `db:"method" json:"method"`
+	Url             string         `db:"url" json:"url"`
+	StatusCode      int64          `db:"status_code" json:"status_code"`
+	Duration        int64          `db:"duration" json:"duration"`
+	ResponseSize    sql.NullInt64  `db:"response_size" json:"response_size"`
+	RequestHeaders  sql.NullString `db:"request_headers" json:"request_headers"`
+	QueryParams     sql.NullString `db:"query_params" json:"query_params"`
+	RequestBody     sql.NullString `db:"request_body" json:"request_body"`
+	ResponseBody    sql.NullString `db:"response_body" json:"response_body"`
+	ResponseHeaders sql.NullString `db:"response_headers" json:"response_headers"`
+	ExecutedAt      string         `db:"executed_at" json:"executed_at"`
 }

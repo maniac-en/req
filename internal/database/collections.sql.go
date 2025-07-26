@@ -9,6 +9,17 @@ import (
 	"context"
 )
 
+const countCollections = `-- name: CountCollections :one
+SELECT COUNT(*) FROM collections
+`
+
+func (q *Queries) CountCollections(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCollections)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createCollection = `-- name: CreateCollection :one
 INSERT INTO collections (name) VALUES (?) RETURNING id, name, created_at, updated_at
 `
@@ -35,12 +46,36 @@ func (q *Queries) DeleteCollection(ctx context.Context, id int64) error {
 	return err
 }
 
-const getAllCollections = `-- name: GetAllCollections :many
+const getCollection = `-- name: GetCollection :one
 SELECT id, name, created_at, updated_at FROM collections
+WHERE id = ?
 `
 
-func (q *Queries) GetAllCollections(ctx context.Context) ([]Collection, error) {
-	rows, err := q.db.QueryContext(ctx, getAllCollections)
+func (q *Queries) GetCollection(ctx context.Context, id int64) (Collection, error) {
+	row := q.db.QueryRowContext(ctx, getCollection, id)
+	var i Collection
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCollectionsPaginated = `-- name: GetCollectionsPaginated :many
+SELECT id, name, created_at, updated_at FROM collections
+ORDER BY created_at DESC
+LIMIT ? OFFSET ?
+`
+
+type GetCollectionsPaginatedParams struct {
+	Limit  int64 `db:"limit" json:"limit"`
+	Offset int64 `db:"offset" json:"offset"`
+}
+
+func (q *Queries) GetCollectionsPaginated(ctx context.Context, arg GetCollectionsPaginatedParams) ([]Collection, error) {
+	rows, err := q.db.QueryContext(ctx, getCollectionsPaginated, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
