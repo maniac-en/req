@@ -44,8 +44,10 @@ type CollectionsManager struct {
 type PaginatedCollections struct {
 	Collections []CollectionEntity `json:"collections"`
 	Total       int64              `json:"total"`
-	Offset      int64              `json:"offset"`
-	Limit       int64              `json:"limit"`
+	Offset      int                `json:"offset"`
+	Limit       int                `json:"limit"`
 	HasNext     bool               `json:"has_next"`
 	HasPrev     bool               `json:"has_prev"`
+	TotalPages  int                `json:"total_pages"`
+	CurrentPage int                `json:"current_page"`
 }

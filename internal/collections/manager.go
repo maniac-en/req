@@ -104,7 +104,7 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 	return paginated.Collections, nil
 }
 
-func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int64) (*PaginatedCollections, error) {
+func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedCollections, error) {
 	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
 
 	total, err := c.DB.CountCollections(ctx)
@@ -114,8 +114,8 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 	}
 
 	collections, err := c.DB.GetCollectionsPaginated(ctx, database.GetCollectionsPaginatedParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		log.Error("failed to get paginated collections", "limit", limit, "offset", offset, "error", err)
@@ -127,17 +127,22 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 		entities[i] = CollectionEntity{Collection: collection}
 	}
 
-	hasNext := offset+int64(len(collections)) < total
+	// Calculate pagination metadata
+	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
+	currentPage := (offset / limit) + 1
+	hasNext := (offset + limit) < int(total)
 	hasPrev := offset > 0
 
-	log.Debug("retrieved paginated collections", "total", total, "returned", len(entities), "has_next", hasNext, "has_prev", hasPrev)
-
-	return &PaginatedCollections{
+	result := &PaginatedCollections{
 		Collections: entities,
 		Total:       total,
 		Offset:      offset,
 		Limit:       limit,
 		HasNext:     hasNext,
 		HasPrev:     hasPrev,
-	}, nil
+		TotalPages:  totalPages,
+		CurrentPage: currentPage,
+	}
+	log.Info("retrieved collections", "count", len(entities), "total", total, "page", currentPage, "total_pages", totalPages)
+	return result, nil
 }
