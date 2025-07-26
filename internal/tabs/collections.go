@@ -3,6 +3,7 @@ package tabs
 import (
 	"time"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/messages"
@@ -29,6 +30,10 @@ func NewCollectionsTab() *CollectionsTab {
 		selectUI: NewSelectInput(),
 		loaded:   false,
 	}
+}
+
+func (c *CollectionsTab) IsFiltering() bool {
+	return c.selectUI.list.FilterState() == list.Filtering
 }
 
 func (c *CollectionsTab) fetchOptions() tea.Cmd {
@@ -76,8 +81,14 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 		c.loaded = true
 
 	case tea.KeyMsg:
+		// Check if list is filtering otherwise the keybinds wouldn't let us type
+		if c.IsFiltering() {
+			c.selectUI, cmd = c.selectUI.Update(msg)
+			return c, cmd
+		}
+
 		switch msg.String() {
-		case "a":
+		case "+":
 			return c, func() tea.Msg {
 				return messages.SwitchTabMsg{TabIndex: 1}
 			}

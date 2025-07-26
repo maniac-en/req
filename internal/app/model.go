@@ -50,7 +50,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		// removed q here because that was causing issues with input fields
+		case "ctrl+c":
 			return m, tea.Quit
 		default:
 			m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
