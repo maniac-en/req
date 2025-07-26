@@ -58,11 +58,19 @@ func (h *HistoryManager) List(ctx context.Context) ([]HistoryEntity, error) {
 	return nil, fmt.Errorf("use ListByCollection to list history entries")
 }
 
-func (h *HistoryManager) ListByCollection(ctx context.Context, collectionID int64, limit, offset int) ([]HistoryEntity, error) {
+func (h *HistoryManager) ListByCollection(ctx context.Context, collectionID int64, limit, offset int) (PaginatedHistory, error) {
 	if err := crud.ValidateID(collectionID); err != nil {
-		return nil, err
+		return PaginatedHistory{}, err
 	}
 
+	// Get total count
+	total, err := h.DB.CountHistoryByCollection(ctx, sql.NullInt64{Int64: collectionID, Valid: true})
+	if err != nil {
+		log.Error("failed to count history by collection", "collection_id", collectionID, "error", err)
+		return PaginatedHistory{}, err
+	}
+
+	// Get paginated results
 	summaries, err := h.DB.GetHistoryByCollection(ctx, database.GetHistoryByCollectionParams{
 		CollectionID: sql.NullInt64{Int64: collectionID, Valid: true},
 		Limit:        int64(limit),
@@ -70,39 +78,41 @@ func (h *HistoryManager) ListByCollection(ctx context.Context, collectionID int6
 	})
 	if err != nil {
 		log.Error("failed to list history by collection", "collection_id", collectionID, "error", err)
-		return nil, err
+		return PaginatedHistory{}, err
 	}
 
+	// Convert to entities
 	entities := make([]HistoryEntity, len(summaries))
 	for i, summary := range summaries {
 		entities[i] = HistoryEntity{History: database.History{
-			ID:         summary.ID,
-			Method:     summary.Method,
-			Url:        summary.Url,
-			StatusCode: summary.StatusCode,
-			ExecutedAt: summary.ExecutedAt,
+			ID:           summary.ID,
+			Method:       summary.Method,
+			Url:          summary.Url,
+			StatusCode:   summary.StatusCode,
+			ExecutedAt:   summary.ExecutedAt,
 			EndpointName: summary.EndpointName,
 		}}
 	}
 
-	log.Info("listed history by collection", "collection_id", collectionID, "count", len(entities), "limit", limit, "offset", offset)
-	return entities, nil
-}
+	// Calculate pagination metadata
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
+	currentPage := (offset / limit) + 1
+	hasNext := (offset + limit) < int(total)
+	hasPrev := offset > 0
 
-type ExecutionData struct {
-	CollectionID   int64
-	CollectionName string
-	EndpointName   string
-	Method         string
-	URL            string
-	Headers        map[string]string
-	QueryParams    map[string]string
-	RequestBody    string
-	StatusCode     int
-	ResponseBody   string
-	ResponseHeaders map[string][]string
-	Duration       time.Duration
-	ResponseSize   int64
+	result := PaginatedHistory{
+		Items:       entities,
+		Total:       total,
+		HasNext:     hasNext,
+		HasPrev:     hasPrev,
+		Limit:       limit,
+		Offset:      offset,
+		TotalPages:  totalPages,
+		CurrentPage: currentPage,
+	}
+
+	log.Info("listed history by collection", "collection_id", collectionID, "count", len(entities), "total", total, "page", currentPage, "total_pages", totalPages)
+	return result, nil
 }
 
 func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData) (HistoryEntity, error) {
@@ -159,3 +169,4 @@ func validateExecutionData(data ExecutionData) error {
 
 	return nil
 }
+

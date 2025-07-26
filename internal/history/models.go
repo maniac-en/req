@@ -30,3 +30,30 @@ func (h HistoryEntity) GetCreatedAt() time.Time {
 func (h HistoryEntity) GetUpdatedAt() time.Time {
 	return h.GetCreatedAt()
 }
+
+type PaginatedHistory struct {
+	Items       []HistoryEntity
+	Total       int64
+	HasNext     bool
+	HasPrev     bool
+	Limit       int
+	Offset      int
+	TotalPages  int
+	CurrentPage int
+}
+
+type ExecutionData struct {
+	CollectionID    int64
+	CollectionName  string
+	EndpointName    string
+	Method          string
+	URL             string
+	Headers         map[string]string
+	QueryParams     map[string]string
+	RequestBody     string
+	StatusCode      int
+	ResponseBody    string
+	ResponseHeaders map[string][]string
+	Duration        time.Duration
+	ResponseSize    int64
+}

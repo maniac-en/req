@@ -10,6 +10,18 @@ import (
 	"database/sql"
 )
 
+const countHistoryByCollection = `-- name: CountHistoryByCollection :one
+SELECT COUNT(*) FROM history
+WHERE collection_id = ?
+`
+
+func (q *Queries) CountHistoryByCollection(ctx context.Context, collectionID sql.NullInt64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countHistoryByCollection, collectionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createHistoryEntry = `-- name: CreateHistoryEntry :one
 INSERT INTO history (
     collection_id, collection_name, endpoint_name,

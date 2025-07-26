@@ -17,6 +17,10 @@ WHERE collection_id = ?
 ORDER BY executed_at DESC
 LIMIT ? OFFSET ?;
 
+-- name: CountHistoryByCollection :one
+SELECT COUNT(*) FROM history
+WHERE collection_id = ?;
+
 -- name: DeleteHistoryEntry :exec
 DELETE FROM history
 WHERE id = ?;
