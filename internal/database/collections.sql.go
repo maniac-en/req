@@ -67,6 +67,23 @@ func (q *Queries) GetAllCollections(ctx context.Context) ([]Collection, error) {
 	return items, nil
 }
 
+const getCollection = `-- name: GetCollection :one
+SELECT id, name, created_at, updated_at FROM collections
+WHERE id = ?
+`
+
+func (q *Queries) GetCollection(ctx context.Context, id int64) (Collection, error) {
+	row := q.db.QueryRowContext(ctx, getCollection, id)
+	var i Collection
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateCollectionName = `-- name: UpdateCollectionName :one
 UPDATE collections
 SET name = ?
