@@ -1,6 +1,7 @@
 package http
 
 import (
+	"net/http"
 	"testing"
 	"time"
 )
@@ -84,5 +85,48 @@ func TestValidateRequest(t *testing.T) {
 
 	if err := manager.ValidateRequest(invalidReq); err == nil {
 		t.Error("expected invalid request to fail validation")
+	}
+}
+
+func TestBuildURL(t *testing.T) {
+	manager := NewHTTPManager()
+
+	tests := []struct {
+		baseURL     string
+		queryParams map[string]string
+		expected    string
+	}{
+		{"https://example.com", nil, "https://example.com"},
+		{"https://example.com", map[string]string{}, "https://example.com"},
+		{"https://example.com", map[string]string{"foo": "bar"}, "https://example.com?foo=bar"},
+	}
+
+	for _, test := range tests {
+		result, err := manager.buildURL(test.baseURL, test.queryParams)
+		if err != nil {
+			t.Errorf("buildURL failed: %v", err)
+		}
+		if result != test.expected {
+			t.Errorf("expected %s, got %s", test.expected, result)
+		}
+	}
+}
+
+func TestSetHeaders(t *testing.T) {
+	manager := NewHTTPManager()
+	req, _ := http.NewRequest("GET", "https://example.com", nil)
+
+	headers := map[string]string{
+		"Content-Type": "application/json",
+		"User-Agent":   "req-cli",
+	}
+
+	err := manager.setHeaders(req, headers)
+	if err != nil {
+		t.Errorf("setHeaders failed: %v", err)
+	}
+
+	if req.Header.Get("Content-Type") != "application/json" {
+		t.Error("Content-Type header not set correctly")
 	}
 }
