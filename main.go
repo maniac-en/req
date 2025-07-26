@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/maniac-en/req/internal/app"
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
 	"github.com/maniac-en/req/internal/log"
@@ -139,33 +140,8 @@ func main() {
 	log.Info("application started successfully")
 
 	// Entry point for UI
-	program := tea.NewProgram(initialModel(), tea.WithAltScreen())
+	program := tea.NewProgram(app.InitialModel(), tea.WithAltScreen())
 	if _, err := program.Run(); err != nil {
 		log.Fatal("Fatal error:", err)
 	}
-}
-
-// UI Stuff
-type model struct{}
-
-func initialModel() model {
-	return model{}
-}
-
-func (m model) Init() tea.Cmd {
-	return nil
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		if msg.String() == "q" {
-			return m, tea.Quit
-		}
-	}
-	return m, nil
-}
-
-func (m model) View() string {
-	return "Hello world!"
 }
