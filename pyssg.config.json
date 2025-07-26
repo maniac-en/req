@@ -1,0 +1,20 @@
+{
+  "project": {
+    "name": "req",
+    "title": "req - Terminal API Client"
+  },
+  "paths": {
+    "content_dir": "web/content",
+    "static_dir": ".pyssg/src/static",
+    "template_path": ".pyssg/template.html",
+    "build_dir": "docs"
+  },
+  "server": {
+    "enable_hot_reload": true,
+    "port": 8080
+  },
+  "build": {
+    "base_path": "/req/",
+    "css_path": "/index.css"
+  }
+}
