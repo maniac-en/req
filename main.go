@@ -13,6 +13,7 @@ import (
 
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/history"
 	"github.com/maniac-en/req/internal/http"
 	"github.com/maniac-en/req/internal/log"
 	_ "github.com/mattn/go-sqlite3"
@@ -36,6 +37,7 @@ type Config struct {
 	DB          *database.Queries
 	Collections *collections.CollectionsManager
 	HTTP        *http.HTTPManager
+	History     *history.HistoryManager
 }
 
 func initPaths() error {
@@ -130,14 +132,16 @@ func main() {
 	db := database.New(DB)
 	collectionsManager := collections.NewCollectionsManager(db)
 	httpManager := http.NewHTTPManager()
+	historyManager := history.NewHistoryManager(db)
 
 	config := &Config{
 		DB:          db,
 		Collections: collectionsManager,
 		HTTP:        httpManager,
+		History:     historyManager,
 	}
 
-	log.Info("application initialized", "components", []string{"database", "collections", "http", "logging"})
-	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil)
+	log.Info("application initialized", "components", []string{"database", "collections", "http", "history", "logging"})
+	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)
 	log.Info("application started successfully")
 }
