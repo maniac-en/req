@@ -32,7 +32,7 @@ func (e *EditCollectionTab) Name() string {
 }
 
 func (e *EditCollectionTab) Instructions() string {
-	return "Press Enter to create • Esc to cancel"
+	return "Enter - create • Esc - cancel"
 }
 
 func (e *EditCollectionTab) Init() tea.Cmd {
