@@ -91,8 +91,7 @@ func main() {
 	}
 
 	// create tabs and model
-	tabs := tui.InitTabs()
-	model, err := tui.InitModel(tabs)
+	model, err := tui.InitModel()
 	// its really hard for this to throw an error rn, but i want this here
 	// in case our programme is able to create some creative errors on init
 	// in the future

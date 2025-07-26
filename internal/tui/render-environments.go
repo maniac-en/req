@@ -1,6 +1,6 @@
 package tui
 
-func renderEnvironments(contentHeight, contentWidth int) string {
+func (m Model) renderEnvironments(contentHeight, contentWidth int) string {
 
 	return ""
 }
