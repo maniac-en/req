@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/messages"
 	"github.com/maniac-en/req/internal/tabs"
 )
 
@@ -16,6 +17,7 @@ type Model struct {
 func InitialModel() Model {
 	tabList := []tabs.Tab{
 		tabs.NewCollectionsTab(),
+		tabs.NewAddCollectionTab(),
 	}
 
 	return Model{
@@ -29,13 +31,21 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
+
+	case messages.SwitchTabMsg:
+		if msg.TabIndex >= 0 && msg.TabIndex < len(m.tabs) {
+			m.activeTab = msg.TabIndex
+			return m, m.tabs[m.activeTab].OnFocus()
+		}
+		return m, nil
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		default:
-			var cmd tea.Cmd
 			m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
 			return m, cmd
 		}
@@ -44,7 +54,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		return m, nil
 	default:
-		var cmd tea.Cmd
 		m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
 		return m, cmd
 	}

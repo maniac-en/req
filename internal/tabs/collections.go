@@ -5,6 +5,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/messages"
 )
 
 type collectionsOpts struct {
@@ -14,14 +15,6 @@ type collectionsOpts struct {
 type OptionPair struct {
 	Label string
 	Value string
-}
-
-var opts = []OptionPair{
-	{Label: "Collection 1", Value: "1"},
-	{Label: "Collection 2", Value: "2"},
-	{Label: "Collection 3", Value: "3"},
-	{Label: "Collection 4", Value: "4"},
-	{Label: "Collection 5", Value: "5"},
 }
 
 type CollectionsTab struct {
@@ -42,7 +35,7 @@ func (c *CollectionsTab) fetchOptions() tea.Cmd {
 	// this is here for now to replicate what a db call would look like
 	return tea.Tick(time.Millisecond*1000, func(time.Time) tea.Msg {
 		return collectionsOpts{
-			options: opts,
+			options: GlobalCollections,
 		}
 	})
 }
@@ -61,10 +54,8 @@ func (c *CollectionsTab) Init() tea.Cmd {
 
 func (c *CollectionsTab) OnFocus() tea.Cmd {
 	c.selectUI.Focus()
-	if !c.loaded {
-		return c.fetchOptions()
-	}
-	return nil
+
+	return c.fetchOptions()
 }
 
 func (c *CollectionsTab) OnBlur() tea.Cmd {
@@ -79,6 +70,17 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	case collectionsOpts:
 		c.selectUI.SetOptions(msg.options)
 		c.loaded = true
+
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "+":
+			return c, func() tea.Msg {
+				return messages.SwitchTabMsg{TabIndex: 1}
+			}
+		default:
+			c.selectUI, cmd = c.selectUI.Update(msg)
+		}
+
 	default:
 		c.selectUI, cmd = c.selectUI.Update(msg)
 	}
