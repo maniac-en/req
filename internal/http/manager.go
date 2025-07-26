@@ -1,7 +1,9 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -67,10 +69,20 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 	}
 
 	start := time.Now()
-	httpReq, err := http.NewRequest(strings.ToUpper(req.Method), requestURL, nil)
+
+	var body io.Reader
+	if req.Body != "" && (strings.ToUpper(req.Method) == "POST" || strings.ToUpper(req.Method) == "PUT" || strings.ToUpper(req.Method) == "PATCH") {
+		body = strings.NewReader(req.Body)
+	}
+
+	httpReq, err := http.NewRequest(strings.ToUpper(req.Method), requestURL, body)
 	if err != nil {
 		log.Error("failed to create HTTP request", "error", err)
 		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	if body != nil {
+		h.setContentType(httpReq, req.Body)
 	}
 
 	if err := h.setHeaders(httpReq, req.Headers); err != nil {
@@ -125,4 +137,20 @@ func (h *HTTPManager) setHeaders(req *http.Request, headers map[string]string) e
 		req.Header.Set(key, value)
 	}
 	return nil
+}
+
+func (h *HTTPManager) setContentType(req *http.Request, body string) {
+	if req.Header.Get("Content-Type") != "" {
+		return
+	}
+
+	body = strings.TrimSpace(body)
+	if strings.HasPrefix(body, "{") || strings.HasPrefix(body, "[") {
+		if json.Valid([]byte(body)) {
+			req.Header.Set("Content-Type", "application/json")
+			return
+		}
+	}
+
+	req.Header.Set("Content-Type", "text/plain")
 }

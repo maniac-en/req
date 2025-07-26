@@ -130,3 +130,26 @@ func TestSetHeaders(t *testing.T) {
 		t.Error("Content-Type header not set correctly")
 	}
 }
+
+func TestSetContentType(t *testing.T) {
+	manager := NewHTTPManager()
+
+	tests := []struct {
+		body     string
+		expected string
+	}{
+		{`{"key": "value"}`, "application/json"},
+		{`[1, 2, 3]`, "application/json"},
+		{"plain text", "text/plain"},
+	}
+
+	for _, test := range tests {
+		req, _ := http.NewRequest("POST", "https://example.com", nil)
+		manager.setContentType(req, test.body)
+
+		if req.Header.Get("Content-Type") != test.expected {
+			t.Errorf("for body %q, expected %q, got %q",
+				test.body, test.expected, req.Header.Get("Content-Type"))
+		}
+	}
+}
