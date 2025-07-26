@@ -28,7 +28,7 @@ func (c *CollectionsManager) GetAllCollections(ctx context.Context) ([]database.
 }
 
 func (c *CollectionsManager) CreateCollection(ctx context.Context, name string) (database.Collection, error) {
-	if err := validateCollectionName(name); err != nil {
+	if err := validateName(name); err != nil {
 		log.Error("invalid collection name", "name", name, "error", err)
 		return database.Collection{}, err
 	}
@@ -44,7 +44,7 @@ func (c *CollectionsManager) CreateCollection(ctx context.Context, name string) 
 }
 
 func (c *CollectionsManager) UpdateCollectionName(ctx context.Context, name string, collectionId int) (database.Collection, error) {
-	if err := validateCollectionName(name); err != nil {
+	if err := validateName(name); err != nil {
 		log.Error("invalid collection name", "name", name, "error", err)
 		return database.Collection{}, err
 	}
@@ -74,7 +74,7 @@ func (c *CollectionsManager) DeleteCollection(ctx context.Context, id int) error
 	return nil
 }
 
-func validateCollectionName(name string) error {
+func validateName(name string) error {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return fmt.Errorf("collection name cannot be empty")

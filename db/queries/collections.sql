@@ -13,3 +13,7 @@ RETURNING *;
 -- name: DeleteCollection :exec
 DELETE FROM collections
 WHERE id = ?;
+
+-- name: GetCollection :one
+SELECT * FROM collections
+WHERE id = ?;
