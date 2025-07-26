@@ -51,3 +51,37 @@ func (h *HTTPManager) ValidateRequest(req *Request) error {
 	}
 	return nil
 }
+
+func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
+	if err := h.ValidateRequest(req); err != nil {
+		return nil, err
+	}
+
+	log.Debug("executing HTTP request", "method", req.Method, "url", req.URL)
+
+	start := time.Now()
+	httpReq, err := http.NewRequest(strings.ToUpper(req.Method), req.URL, nil)
+	if err != nil {
+		log.Error("failed to create HTTP request", "error", err)
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := h.Client.Do(httpReq)
+	if err != nil {
+		log.Error("HTTP request failed", "error", err)
+		return nil, fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	duration := time.Since(start)
+
+	response := &Response{
+		StatusCode: resp.StatusCode,
+		Status:     resp.Status,
+		Headers:    resp.Header,
+		Duration:   duration,
+	}
+
+	log.Info("HTTP request completed", "status", resp.StatusCode, "duration", duration)
+	return response, nil
+}
