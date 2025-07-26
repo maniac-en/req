@@ -13,6 +13,7 @@ import (
 
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/http"
 	"github.com/maniac-en/req/internal/log"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
@@ -34,6 +35,7 @@ var (
 type Config struct {
 	DB          *database.Queries
 	Collections *collections.CollectionsManager
+	HTTP        *http.HTTPManager
 }
 
 func initPaths() error {
@@ -124,16 +126,18 @@ func main() {
 		log.Fatal("failed to run migrations", "error", err)
 	}
 
-	// create database client and collections manager
+	// create database client and managers
 	db := database.New(DB)
 	collectionsManager := collections.NewCollectionsManager(db)
+	httpManager := http.NewHTTPManager()
 
 	config := &Config{
 		DB:          db,
 		Collections: collectionsManager,
+		HTTP:        httpManager,
 	}
 
-	log.Info("application initialized", "components", []string{"database", "collections", "logging"})
-	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil)
+	log.Info("application initialized", "components", []string{"database", "collections", "http", "logging"})
+	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil)
 	log.Info("application started successfully")
 }
