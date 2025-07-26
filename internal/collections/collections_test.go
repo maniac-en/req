@@ -3,13 +3,34 @@ package collections_test
 import (
 	"context"
 	"database/sql"
-	"os"
 	"testing"
 
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+const schema = `
+CREATE TABLE collections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE endpoints (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    collection_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    method TEXT NOT NULL,
+    url TEXT NOT NULL,
+    headers TEXT DEFAULT '{}' NOT NULL,
+    query_params TEXT DEFAULT '{}' NOT NULL,
+    request_body TEXT DEFAULT '' NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+);
+`
 
 func setupTestDB(t *testing.T) (*sql.DB, *database.Queries, func()) {
 	t.Helper()
@@ -19,10 +40,10 @@ func setupTestDB(t *testing.T) (*sql.DB, *database.Queries, func()) {
 		t.Fatalf("failed to open test db: %v", err)
 	}
 
-	schema, err := os.ReadFile("testdata/schema.sql")
-	if err != nil {
-		t.Fatalf("failed to read schema: %v", err)
-	}
+	// schema, err := os.ReadFile("testdata/schema.sql")
+	// if err != nil {
+	// 	t.Fatalf("failed to read schema: %v", err)
+	// }
 	_, err = db.Exec(string(schema))
 	if err != nil {
 		t.Fatalf("failed to execute schema: %v", err)
