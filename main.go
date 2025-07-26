@@ -38,6 +38,7 @@ type Config struct {
 	Collections *collections.CollectionsManager
 	HTTP        *http.HTTPManager
 	History     *history.HistoryManager
+	// TODO: Add Endpoints *endpoints.EndpointsManager when endpoints package is refactored
 }
 
 func initPaths() error {
