@@ -81,6 +81,10 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if selected := c.selectUI.GetSelected(); selected != "" {
 				return c, c.deleteCollection(selected)
 			}
+		case "e": // Add edit key handling
+			if selected := c.selectUI.GetSelected(); selected != "" {
+				return c, c.editCollection(selected)
+			}
 		default:
 			c.selectUI, cmd = c.selectUI.Update(msg)
 		}
@@ -104,7 +108,7 @@ func (c *CollectionsTab) View() string {
 
 	if !c.selectUI.IsLoading() && len(c.selectUI.list.Items()) > 0 {
 		title := "Select Collection:\n\n"
-		instructions := "\n ↑/k - up | ↓/j - down | / - search | + - add collection | enter - select | d - delete collection"
+		instructions := "\n ↑/k - up | ↓/j - down | / - search | + - add collection | enter - select | d - delete collection | e - edit collection"
 		return title + style.Render(selectContent) + instructions
 	}
 
@@ -120,4 +124,26 @@ func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {
 		}
 	}
 	return c.fetchOptions()
+}
+
+func (c *CollectionsTab) editCollection(value string) tea.Cmd {
+	var label string
+	for _, collection := range GlobalCollections {
+		if collection.Value == value {
+			label = collection.Label
+			break
+		}
+	}
+
+	return tea.Batch(
+		func() tea.Msg {
+			return messages.EditCollectionMsg{
+				Label: label,
+				Value: value,
+			}
+		},
+		func() tea.Msg {
+			return messages.SwitchTabMsg{TabIndex: 2}
+		},
+	)
 }

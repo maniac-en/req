@@ -18,6 +18,7 @@ func InitialModel() Model {
 	tabList := []tabs.Tab{
 		tabs.NewCollectionsTab(),
 		tabs.NewAddCollectionTab(),
+		tabs.NewEditCollectionTab(),
 	}
 
 	return Model{
@@ -38,6 +39,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.TabIndex >= 0 && msg.TabIndex < len(m.tabs) {
 			m.activeTab = msg.TabIndex
 			return m, m.tabs[m.activeTab].OnFocus()
+		}
+		return m, nil
+
+	case messages.EditCollectionMsg:
+		if editTab, ok := m.tabs[2].(*tabs.EditCollectionTab); ok {
+			editTab.SetEditingCollection(msg.Label, msg.Value)
 		}
 		return m, nil
 
