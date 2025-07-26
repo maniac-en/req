@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,10 +25,8 @@ func NewHTTPManager() *HTTPManager {
 func validateMethod(method string) error {
 	method = strings.ToUpper(strings.TrimSpace(method))
 	validMethods := []string{"GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"}
-	for _, valid := range validMethods {
-		if method == valid {
-			return nil
-		}
+	if slices.Contains(validMethods, method) {
+		return nil
 	}
 	return fmt.Errorf("invalid HTTP method: %s", method)
 }
