@@ -1,16 +1,19 @@
 package tabs
 
 import (
-	"time"
+	"context"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 )
 
 type collectionsOpts struct {
-	options []OptionPair
+	options    []OptionPair
+	totalItems int
 }
 
 type OptionPair struct {
@@ -19,16 +22,24 @@ type OptionPair struct {
 }
 
 type CollectionsTab struct {
-	name     string
-	selectUI SelectInput
-	loaded   bool
+	name             string
+	selectUI         SelectInput
+	loaded           bool
+	currentPage      int
+	itemsPerPage     int
+	totalCollections int
+	globalState      *global.State
 }
 
-func NewCollectionsTab() *CollectionsTab {
+func NewCollectionsTab(state *global.State) *CollectionsTab {
+	itemsPerPage := 5
 	return &CollectionsTab{
-		name:     "Collections",
-		selectUI: NewSelectInput(),
-		loaded:   false,
+		name:         "Collections",
+		selectUI:     NewSelectInput(),
+		loaded:       false,
+		currentPage:  0,
+		itemsPerPage: itemsPerPage,
+		globalState:  state,
 	}
 }
 
@@ -36,13 +47,26 @@ func (c *CollectionsTab) IsFiltering() bool {
 	return c.selectUI.list.FilterState() == list.Filtering
 }
 
-func (c *CollectionsTab) fetchOptions() tea.Cmd {
-	// this is here for now to replicate what a db call would look like
-	return tea.Tick(time.Millisecond*1000, func(time.Time) tea.Msg {
+func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
+	ctx := global.GetAppContext()
+	paginatedCollections, err := ctx.Collections.ListPaginated(context.Background(), limit, offset)
+	if err != nil {
+	}
+	options := []OptionPair{}
+	for i, _ := range paginatedCollections.Collections {
+		options = append(options, OptionPair{
+			Label: paginatedCollections.Collections[i].GetName(),
+			Value: strconv.FormatInt(paginatedCollections.Collections[i].GetID(), 10),
+		})
+	}
+	GlobalCollections = options
+	c.totalCollections = int(paginatedCollections.Total)
+	return func() tea.Msg {
 		return collectionsOpts{
-			options: GlobalCollections,
+			options:    GlobalCollections,
+			totalItems: c.totalCollections,
 		}
-	})
+	}
 }
 
 func (c *CollectionsTab) Name() string {
@@ -50,21 +74,21 @@ func (c *CollectionsTab) Name() string {
 }
 
 func (c *CollectionsTab) Instructions() string {
-	return "\n k - up • j - down • / - search • + - add collection • enter - select • d - delete collection • e - edit collection"
+	return "\n k - up • j - down • / - search • + - add collection • enter - select • d - delete collection • e - edit collection • h - prev page • l - next page"
 }
 
 func (c *CollectionsTab) Init() tea.Cmd {
 	c.selectUI.Focus()
 	return tea.Batch(
 		c.selectUI.Init(),
-		c.fetchOptions(),
+		c.fetchOptions(c.itemsPerPage, 0),
 	)
 }
 
 func (c *CollectionsTab) OnFocus() tea.Cmd {
 	c.selectUI.Focus()
 
-	return c.fetchOptions()
+	return c.fetchOptions(c.itemsPerPage, c.currentPage*c.itemsPerPage)
 }
 
 func (c *CollectionsTab) OnBlur() tea.Cmd {
@@ -96,9 +120,27 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if selected := c.selectUI.GetSelected(); selected != "" {
 				return c, c.deleteCollection(selected)
 			}
-		case "e": // Add edit key handling
+		case "e":
 			if selected := c.selectUI.GetSelected(); selected != "" {
 				return c, c.editCollection(selected)
+			}
+		case "h":
+			if c.currentPage > 0 {
+				c.currentPage--
+				newOffset := c.currentPage * c.itemsPerPage
+				return c, c.fetchOptions(c.itemsPerPage, newOffset)
+			}
+		case "l":
+			totalPages := (c.totalCollections + c.itemsPerPage - 1) / c.itemsPerPage
+			if c.currentPage < totalPages-1 {
+				c.currentPage++
+				newOffset := c.currentPage * c.itemsPerPage
+				return c, c.fetchOptions(c.itemsPerPage, newOffset)
+			}
+		case "enter":
+			c.globalState.SetCurrentCollection(c.selectUI.GetSelected())
+			return c, func() tea.Msg {
+				return messages.SwitchTabMsg{TabIndex: 3}
 			}
 		default:
 			c.selectUI, cmd = c.selectUI.Update(msg)
@@ -132,13 +174,19 @@ func (c *CollectionsTab) View() string {
 }
 
 func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {
+	ctx := global.GetAppContext()
+	id, _ := strconv.Atoi(value)
+	err := ctx.Collections.Delete(context.Background(), int64(id))
+	if err != nil {
+		return c.fetchOptions(c.itemsPerPage, c.currentPage*c.itemsPerPage)
+	}
 	for i, collection := range GlobalCollections {
 		if collection.Value == value {
 			GlobalCollections = append(GlobalCollections[:i], GlobalCollections[i+1:]...)
 			break
 		}
 	}
-	return c.fetchOptions()
+	return c.fetchOptions(c.itemsPerPage, c.currentPage*c.itemsPerPage)
 }
 
 func (c *CollectionsTab) editCollection(value string) tea.Cmd {

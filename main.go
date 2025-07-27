@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/app"
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
@@ -147,6 +148,13 @@ func main() {
 		HTTP:        httpManager,
 		History:     historyManager,
 	}
+	appContext := &global.AppContext{
+		Collections: collectionsManager,
+		Endpoints:   endpointsManager,
+		HTTP:        httpManager,
+		History:     historyManager,
+	}
+	global.SetAppContext(appContext)
 
 	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging"})
 	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "endpoints", config.Endpoints != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)

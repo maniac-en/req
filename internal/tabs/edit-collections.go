@@ -1,9 +1,13 @@
 package tabs
 
 import (
+	"context"
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 )
 
@@ -107,6 +111,9 @@ func (e *EditCollectionTab) View() string {
 }
 
 func (e *EditCollectionTab) updateCollection(newName string) (Tab, tea.Cmd) {
+	ctx := global.GetAppContext()
+	id, _ := strconv.Atoi(e.originalValue)
+	ctx.Collections.Update(context.Background(), int64(id), newName)
 	for i, collection := range GlobalCollections {
 		if collection.Value == e.originalValue {
 			GlobalCollections[i] = OptionPair{
