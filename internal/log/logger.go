@@ -109,6 +109,17 @@ func Debug(msg string, args ...any) {
 	Global().Debug(msg, args...)
 }
 
+func DebugIf(msg string, args ...any) {
+	if IsDebugEnabled() {
+		Global().Debug(msg, args...)
+	}
+}
+
+func IsDebugEnabled() bool {
+	return os.Getenv("REQ_DEBUG") == "1" ||
+		os.Getenv("REQ_LOG_LEVEL") == "debug"
+}
+
 func Info(msg string, args ...any) {
 	Global().Info(msg, args...)
 }

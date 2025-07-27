@@ -59,7 +59,7 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 		return nil, err
 	}
 
-	log.Debug("executing HTTP request", "method", req.Method, "url", req.URL)
+	log.DebugIf("executing HTTP request", "method", req.Method, "url", req.URL)
 
 	requestURL, err := h.buildURL(req.URL, req.QueryParams)
 	if err != nil {
@@ -108,6 +108,18 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 	}
 
 	duration := time.Since(start)
+
+	// Log warnings for concerning HTTP responses
+	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+		log.Warn("HTTP client error", "status", resp.StatusCode, "url", req.URL)
+	} else if resp.StatusCode >= 500 {
+		log.Warn("HTTP server error", "status", resp.StatusCode, "url", req.URL)
+	}
+
+	// Warn about slow requests (>5 seconds)
+	if duration > 5*time.Second {
+		log.Warn("slow HTTP request", "duration", duration, "url", req.URL)
+	}
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
