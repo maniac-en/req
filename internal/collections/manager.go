@@ -15,11 +15,11 @@ func NewCollectionsManager(db *database.Queries) *CollectionsManager {
 
 func (c *CollectionsManager) Create(ctx context.Context, name string) (CollectionEntity, error) {
 	if err := crud.ValidateName(name); err != nil {
-		log.Debug("collection creation failed validation", "name", name)
+		log.Warn("collection creation failed validation", "name", name)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.Debug("creating collection", "name", name)
+	log.DebugIf("creating collection", "name", name)
 	collection, err := c.DB.CreateCollection(ctx, name)
 	if err != nil {
 		log.Error("failed to create collection", "name", name, "error", err)
@@ -32,11 +32,11 @@ func (c *CollectionsManager) Create(ctx context.Context, name string) (Collectio
 
 func (c *CollectionsManager) Read(ctx context.Context, id int64) (CollectionEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection read failed validation", "id", id)
+		log.Warn("collection read failed validation", "id", id)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.Debug("reading collection", "id", id)
+	log.DebugIf("reading collection", "id", id)
 	collection, err := c.DB.GetCollection(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -52,15 +52,15 @@ func (c *CollectionsManager) Read(ctx context.Context, id int64) (CollectionEnti
 
 func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) (CollectionEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection update failed ID validation", "id", id)
+		log.Warn("collection update failed ID validation", "id", id)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 	if err := crud.ValidateName(name); err != nil {
-		log.Debug("collection update failed name validation", "name", name)
+		log.Warn("collection update failed name validation", "name", name)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.Debug("updating collection", "id", id, "name", name)
+	log.DebugIf("updating collection", "id", id, "name", name)
 	collection, err := c.DB.UpdateCollectionName(ctx, database.UpdateCollectionNameParams{
 		Name: name,
 		ID:   id,
@@ -80,11 +80,11 @@ func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) 
 
 func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection delete failed validation", "id", id)
+		log.Warn("collection delete failed validation", "id", id)
 		return crud.ErrInvalidInput
 	}
 
-	log.Debug("deleting collection", "id", id)
+	log.DebugIf("deleting collection", "id", id)
 	err := c.DB.DeleteCollection(ctx, id)
 	if err != nil {
 		log.Error("failed to delete collection", "id", id, "error", err)
@@ -96,7 +96,7 @@ func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 }
 
 func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, error) {
-	log.Debug("listing all collections with default pagination")
+	log.DebugIf("listing all collections with default pagination")
 	paginated, err := c.ListPaginated(ctx, 50, 0)
 	if err != nil {
 		return nil, err
@@ -105,7 +105,15 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 }
 
 func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedCollections, error) {
-	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
+	// Warn about unusual pagination parameters
+	if limit > 1000 {
+		log.Warn("large pagination limit requested", "limit", limit)
+	}
+	if offset < 0 {
+		log.Warn("negative pagination offset", "offset", offset)
+	}
+
+	log.DebugIf("listing paginated collections", "limit", limit, "offset", offset)
 
 	total, err := c.DB.CountCollections(ctx)
 	if err != nil {

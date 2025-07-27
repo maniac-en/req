@@ -21,11 +21,11 @@ func (e *EndpointsManager) Create(ctx context.Context, name string) (EndpointEnt
 
 func (e *EndpointsManager) Read(ctx context.Context, id int64) (EndpointEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("endpoint read failed validation", "id", id)
+		log.Warn("endpoint read failed validation", "id", id)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
-	log.Debug("reading endpoint", "id", id)
+	log.DebugIf("reading endpoint", "id", id)
 	endpoint, err := e.DB.GetEndpoint(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -45,11 +45,11 @@ func (e *EndpointsManager) Update(ctx context.Context, id int64, name string) (E
 
 func (e *EndpointsManager) Delete(ctx context.Context, id int64) error {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("endpoint delete failed validation", "id", id)
+		log.Warn("endpoint delete failed validation", "id", id)
 		return crud.ErrInvalidInput
 	}
 
-	log.Debug("deleting endpoint", "id", id)
+	log.DebugIf("deleting endpoint", "id", id)
 	err := e.DB.DeleteEndpoint(ctx, id)
 	if err != nil {
 		log.Error("failed to delete endpoint", "id", id, "error", err)
@@ -66,11 +66,11 @@ func (e *EndpointsManager) List(ctx context.Context) ([]EndpointEntity, error) {
 
 func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID int64, limit, offset int) (*PaginatedEndpoints, error) {
 	if err := crud.ValidateID(collectionID); err != nil {
-		log.Debug("endpoint list failed collection validation", "collection_id", collectionID)
+		log.Warn("endpoint list failed collection validation", "collection_id", collectionID)
 		return nil, crud.ErrInvalidInput
 	}
 
-	log.Debug("listing paginated endpoints", "collection_id", collectionID, "limit", limit, "offset", offset)
+	log.DebugIf("listing paginated endpoints", "collection_id", collectionID, "limit", limit, "offset", offset)
 
 	total, err := e.DB.CountEndpointsByCollection(ctx, collectionID)
 	if err != nil {
@@ -105,15 +105,15 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 
 func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData) (EndpointEntity, error) {
 	if err := crud.ValidateID(data.CollectionID); err != nil {
-		log.Debug("endpoint creation failed collection validation", "collection_id", data.CollectionID)
+		log.Warn("endpoint creation failed collection validation", "collection_id", data.CollectionID)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 	if err := crud.ValidateName(data.Name); err != nil {
-		log.Debug("endpoint creation failed name validation", "name", data.Name)
+		log.Warn("endpoint creation failed name validation", "name", data.Name)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 	if data.Method == "" || data.URL == "" {
-		log.Debug("endpoint creation failed - method and URL required", "method", data.Method, "url", data.URL)
+		log.Warn("endpoint creation failed - method and URL required", "method", data.Method, "url", data.URL)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
@@ -132,7 +132,7 @@ func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData
 		queryParamsJSON = string(qpBytes)
 	}
 
-	log.Debug("creating endpoint", "collection_id", data.CollectionID, "name", data.Name, "method", data.Method, "url", data.URL)
+	log.DebugIf("creating endpoint", "collection_id", data.CollectionID, "name", data.Name, "method", data.Method, "url", data.URL)
 	endpoint, err := e.DB.CreateEndpoint(ctx, database.CreateEndpointParams{
 		CollectionID: data.CollectionID,
 		Name:         data.Name,
@@ -153,15 +153,15 @@ func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData
 
 func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data EndpointData) (EndpointEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("endpoint update failed ID validation", "id", id)
+		log.Warn("endpoint update failed ID validation", "id", id)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 	if err := crud.ValidateName(data.Name); err != nil {
-		log.Debug("endpoint update failed name validation", "name", data.Name)
+		log.Warn("endpoint update failed name validation", "name", data.Name)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 	if data.Method == "" || data.URL == "" {
-		log.Debug("endpoint update failed - method and URL required", "method", data.Method, "url", data.URL)
+		log.Warn("endpoint update failed - method and URL required", "method", data.Method, "url", data.URL)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
@@ -180,7 +180,7 @@ func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data En
 		queryParamsJSON = string(qpBytes)
 	}
 
-	log.Debug("updating endpoint", "id", id, "name", data.Name, "method", data.Method, "url", data.URL)
+	log.DebugIf("updating endpoint", "id", id, "name", data.Name, "method", data.Method, "url", data.URL)
 	endpoint, err := e.DB.UpdateEndpoint(ctx, database.UpdateEndpointParams{
 		Name:        data.Name,
 		Method:      data.Method,
