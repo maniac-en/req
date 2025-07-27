@@ -40,18 +40,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			if m.mode == CollectionsViewMode {
-				return m, tea.Quit
-			}
-			// For other views, 'q' goes back to collections
-			m.mode = CollectionsViewMode
-			return m, nil
-		case "a":
-			if m.mode == CollectionsViewMode {
-				m.mode = AddCollectionViewMode
+		// Handle global keybinds only when not in filtering mode
+		isFiltering := m.mode == CollectionsViewMode && m.collectionsView.IsFiltering()
+		
+		if !isFiltering {
+			switch msg.String() {
+			case "ctrl+c", "q":
+				if m.mode == CollectionsViewMode {
+					return m, tea.Quit
+				}
+				// For other views, 'q' goes back to collections
+				m.mode = CollectionsViewMode
 				return m, nil
+			case "a":
+				if m.mode == CollectionsViewMode {
+					m.mode = AddCollectionViewMode
+					return m, nil
+				}
 			}
 		}
 	case tea.WindowSizeMsg:

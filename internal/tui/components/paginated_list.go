@@ -34,7 +34,7 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 	l := list.New(listItems, paginatedItemDelegate{}, defaultWidth, defaultHeight)
 	l.Title = title
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
+	l.SetFilteringEnabled(true) // Enable filtering
 	l.SetShowHelp(false) // Disable built-in help text
 	l.Styles.Title = styles.TitleStyle
 
@@ -79,6 +79,10 @@ func (pl PaginatedList) SelectedItem() ListItem {
 
 func (pl PaginatedList) SelectedIndex() int {
 	return pl.list.Index()
+}
+
+func (pl PaginatedList) IsFiltering() bool {
+	return pl.list.FilterState() == list.Filtering
 }
 
 type paginatedItemDelegate struct{}

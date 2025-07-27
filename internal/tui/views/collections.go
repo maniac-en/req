@@ -109,28 +109,30 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			break
 		}
 		
-		// Handle pagination keys first, before the list can consume them
-		switch msg.String() {
-		case "n", "right":
-			// Next page
-			if v.currentPage < v.pagination.TotalPages {
-				return v, func() tea.Msg {
-					return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
+		// Handle pagination keys only when not filtering
+		if !v.list.IsFiltering() {
+			switch msg.String() {
+			case "n", "right":
+				// Next page
+				if v.currentPage < v.pagination.TotalPages {
+					return v, func() tea.Msg {
+						return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
+					}
 				}
-			}
-			return v, nil
-		case "p", "left":
-			// Previous page
-			if v.currentPage > 1 {
-				return v, func() tea.Msg {
-					return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
+				return v, nil
+			case "p", "left":
+				// Previous page
+				if v.currentPage > 1 {
+					return v, func() tea.Msg {
+						return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
+					}
 				}
+				return v, nil
 			}
-			return v, nil
-		default:
-			// Forward other keys to the list
-			v.list, cmd = v.list.Update(msg)
 		}
+		
+		// Always forward keys to the list (handles filtering and navigation)
+		v.list, cmd = v.list.Update(msg)
 		
 	default:
 		if v.initialized {
@@ -139,6 +141,10 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 	}
 	
 	return v, cmd
+}
+
+func (v CollectionsView) IsFiltering() bool {
+	return v.initialized && v.list.IsFiltering()
 }
 
 func (v CollectionsView) View() string {
@@ -152,9 +158,12 @@ func (v CollectionsView) View() string {
 
 	content := v.list.View()
 	
-	// Build instructions with pagination info
-	instructions := "↑↓: navigate • a: add • enter: edit • d: delete • q: quit"
-	if v.pagination.TotalPages > 1 {
+	// Build instructions with pagination and filter info
+	instructions := "↑↓: navigate • /: filter • enter: edit • d: delete • q: quit"
+	if !v.list.IsFiltering() {
+		instructions = "↑↓: navigate • a: add • /: filter • enter: edit • d: delete • q: quit"
+	}
+	if v.pagination.TotalPages > 1 && !v.list.IsFiltering() {
 		instructions += fmt.Sprintf(" • p/n: prev/next page (%d/%d)", v.currentPage, v.pagination.TotalPages)
 	}
 	

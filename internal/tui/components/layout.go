@@ -46,12 +46,12 @@ func (l Layout) Content(content string, headerHeight, footerHeight int) string {
 func (l Layout) FullView(title, content, instructions string) string {
 	header := l.Header(title)
 	footer := l.Footer(instructions)
-	
+
 	headerHeight := lipgloss.Height(header)
 	footerHeight := lipgloss.Height(footer)
-	
+
 	contentArea := l.Content(content, headerHeight, footerHeight)
-	
+
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
@@ -59,3 +59,4 @@ func (l Layout) FullView(title, content, instructions string) string {
 		footer,
 	)
 }
+
