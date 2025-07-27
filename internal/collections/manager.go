@@ -127,22 +127,12 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 		entities[i] = CollectionEntity{Collection: collection}
 	}
 
-	// Calculate pagination metadata
-	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
-	currentPage := (offset / limit) + 1
-	hasNext := (offset + limit) < int(total)
-	hasPrev := offset > 0
+	pagination := crud.CalculatePagination(total, limit, offset)
 
 	result := &PaginatedCollections{
-		Collections: entities,
-		Total:       total,
-		Offset:      offset,
-		Limit:       limit,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-		TotalPages:  totalPages,
-		CurrentPage: currentPage,
+		Collections:        entities,
+		PaginationMetadata: pagination,
 	}
-	log.Info("retrieved collections", "count", len(entities), "total", total, "page", currentPage, "total_pages", totalPages)
+	log.Info("retrieved collections", "count", len(entities), "total", pagination.Total, "page", pagination.CurrentPage, "total_pages", pagination.TotalPages)
 	return result, nil
 }

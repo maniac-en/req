@@ -94,24 +94,14 @@ func (h *HistoryManager) ListByCollection(ctx context.Context, collectionID int6
 		}}
 	}
 
-	// Calculate pagination metadata
-	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
-	currentPage := (offset / limit) + 1
-	hasNext := (offset + limit) < int(total)
-	hasPrev := offset > 0
+	pagination := crud.CalculatePagination(total, limit, offset)
 
 	result := PaginatedHistory{
-		Items:       entities,
-		Total:       total,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-		Limit:       limit,
-		Offset:      offset,
-		TotalPages:  totalPages,
-		CurrentPage: currentPage,
+		Items:              entities,
+		PaginationMetadata: pagination,
 	}
 
-	log.Info("listed history by collection", "collection_id", collectionID, "count", len(entities), "total", total, "page", currentPage, "total_pages", totalPages)
+	log.Info("listed history by collection", "collection_id", collectionID, "count", len(entities), "total", pagination.Total, "page", pagination.CurrentPage, "total_pages", pagination.TotalPages)
 	return result, nil
 }
 

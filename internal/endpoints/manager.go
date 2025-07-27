@@ -93,23 +93,13 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 		entities[i] = EndpointEntity{Endpoint: endpoint}
 	}
 
-	// Calculate pagination metadata
-	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
-	currentPage := (offset / limit) + 1
-	hasNext := (offset + limit) < int(total)
-	hasPrev := offset > 0
+	pagination := crud.CalculatePagination(total, limit, offset)
 
 	result := &PaginatedEndpoints{
-		Endpoints:   entities,
-		Total:       total,
-		Offset:      offset,
-		Limit:       limit,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-		TotalPages:  totalPages,
-		CurrentPage: currentPage,
+		Endpoints:          entities,
+		PaginationMetadata: pagination,
 	}
-	log.Info("retrieved endpoints", "collection_id", collectionID, "count", len(entities), "total", total, "page", currentPage, "total_pages", totalPages)
+	log.Info("retrieved endpoints", "collection_id", collectionID, "count", len(entities), "total", pagination.Total, "page", pagination.CurrentPage, "total_pages", pagination.TotalPages)
 	return result, nil
 }
 

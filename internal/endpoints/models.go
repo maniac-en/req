@@ -3,6 +3,7 @@ package endpoints
 import (
 	"time"
 
+	"github.com/maniac-en/req/internal/crud"
 	"github.com/maniac-en/req/internal/database"
 	"github.com/maniac-en/req/internal/log"
 )
@@ -42,14 +43,8 @@ type EndpointsManager struct {
 }
 
 type PaginatedEndpoints struct {
-	Endpoints   []EndpointEntity `json:"endpoints"`
-	Total       int64            `json:"total"`
-	Offset      int              `json:"offset"`
-	Limit       int              `json:"limit"`
-	HasNext     bool             `json:"has_next"`
-	HasPrev     bool             `json:"has_prev"`
-	TotalPages  int              `json:"total_pages"`
-	CurrentPage int              `json:"current_page"`
+	Endpoints []EndpointEntity `json:"endpoints"`
+	crud.PaginationMetadata
 }
 
 type EndpointData struct {

@@ -3,6 +3,7 @@ package collections
 import (
 	"time"
 
+	"github.com/maniac-en/req/internal/crud"
 	"github.com/maniac-en/req/internal/database"
 	"github.com/maniac-en/req/internal/log"
 )
@@ -43,11 +44,5 @@ type CollectionsManager struct {
 
 type PaginatedCollections struct {
 	Collections []CollectionEntity `json:"collections"`
-	Total       int64              `json:"total"`
-	HasNext     bool               `json:"has_next"`
-	HasPrev     bool               `json:"has_prev"`
-	Limit       int                `json:"limit"`
-	Offset      int                `json:"offset"`
-	TotalPages  int                `json:"total_pages"`
-	CurrentPage int                `json:"current_page"`
+	crud.PaginationMetadata
 }
