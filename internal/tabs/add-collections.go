@@ -2,6 +2,7 @@ package tabs
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -103,9 +104,10 @@ func (a *AddCollectionTab) View() string {
 func (a *AddCollectionTab) addCollection(name string) (Tab, tea.Cmd) {
 	ctx := global.GetAppContext()
 	collection, _ := ctx.Collections.Create(context.Background(), name)
+	value := strconv.Itoa(int(collection.GetID()))
 	newOption := OptionPair{
 		Label: collection.GetName(),
-		Value: string(collection.GetID()),
+		Value: value,
 	}
 
 	GlobalCollections = append(GlobalCollections, newOption)
