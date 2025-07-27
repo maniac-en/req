@@ -3,6 +3,7 @@ package crud
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/maniac-en/req/internal/log"
 )
@@ -26,4 +27,14 @@ func ValidateID(id int64) error {
 		return fmt.Errorf("ID must be positive")
 	}
 	return nil
+}
+
+// ParseTimestamp safely parses RFC3339 timestamp strings from database
+func ParseTimestamp(timestamp string) time.Time {
+	parsed, err := time.Parse(time.RFC3339, timestamp)
+	if err != nil {
+		log.Debug("failed to parse timestamp", "timestamp", timestamp, "error", err)
+		return time.Time{}
+	}
+	return parsed
 }
