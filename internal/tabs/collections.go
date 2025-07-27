@@ -3,7 +3,6 @@ package tabs
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -62,12 +61,12 @@ func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
 	}
 	GlobalCollections = options
 	c.totalCollections = int(paginatedCollections.Total)
-	return tea.Tick(0, func(time.Time) tea.Msg {
+	return func() tea.Msg {
 		return collectionsOpts{
 			options:    GlobalCollections,
 			totalItems: c.totalCollections,
 		}
-	})
+	}
 }
 
 func (c *CollectionsTab) Name() string {
