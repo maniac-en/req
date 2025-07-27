@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/backend/collections"
 	"github.com/maniac-en/req/internal/backend/database"
 	"github.com/maniac-en/req/internal/backend/endpoints"
@@ -36,13 +35,6 @@ var (
 	DB          *sql.DB
 )
 
-type Config struct {
-	DB          *database.Queries
-	Collections *collections.CollectionsManager
-	Endpoints   *endpoints.EndpointsManager
-	HTTP        *http.HTTPManager
-	History     *history.HistoryManager
-}
 
 func initPaths() error {
 	// setup paths using OS-appropriate cache directory
@@ -141,27 +133,20 @@ func main() {
 	httpManager := http.NewHTTPManager()
 	historyManager := history.NewHistoryManager(db)
 
-	config := &Config{
-		DB:          db,
-		Collections: collectionsManager,
-		Endpoints:   endpointsManager,
-		HTTP:        httpManager,
-		History:     historyManager,
-	}
-	appContext := &global.AppContext{
-		Collections: collectionsManager,
-		Endpoints:   endpointsManager,
-		HTTP:        httpManager,
-		History:     historyManager,
-	}
-	global.SetAppContext(appContext)
+	// create clean context for dependency injection
+	appContext := app.NewContext(
+		collectionsManager,
+		endpointsManager,
+		httpManager,
+		historyManager,
+	)
 
 	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging"})
-	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "endpoints", config.Endpoints != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)
+	log.Debug("configuration loaded", "collections_manager", collectionsManager != nil, "endpoints", endpointsManager != nil, "database", db != nil, "http_manager", httpManager != nil, "history_manager", historyManager != nil)
 	log.Info("application started successfully")
 
 	// Entry point for UI
-	program := tea.NewProgram(app.InitialModel(), tea.WithAltScreen())
+	program := tea.NewProgram(app.NewModel(appContext), tea.WithAltScreen())
 	if _, err := program.Run(); err != nil {
 		log.Fatal("Fatal error:", err)
 	}

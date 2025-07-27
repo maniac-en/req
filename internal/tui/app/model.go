@@ -2,117 +2,86 @@ package app
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/tui/messages"
-	"github.com/maniac-en/req/internal/tui/tabs"
+	"github.com/maniac-en/req/internal/tui/views"
+)
+
+type ViewMode int
+
+const (
+	CollectionsViewMode ViewMode = iota
+	AddCollectionViewMode
+	EditCollectionViewMode
 )
 
 type Model struct {
-	tabs      []tabs.Tab
-	activeTab int
-	width     int
-	height    int
-
-	// Global state for sharing data
-	state *global.State
+	ctx             *Context
+	mode            ViewMode
+	collectionsView views.CollectionsView
+	addCollectionView views.AddCollectionView
+	width           int
+	height          int
 }
 
-func InitialModel() Model {
-	globalState := global.NewGlobalState()
-
+func NewModel(ctx *Context) Model {
 	return Model{
-		state: globalState,
-		tabs: []tabs.Tab{
-			tabs.NewCollectionsTab(globalState),
-			tabs.NewAddCollectionTab(),
-			tabs.NewEditCollectionTab(),
-			tabs.NewEndpointsTab(globalState),
-			tabs.NewAddEndpointTab(globalState),
-			tabs.NewEditEndpointTab(globalState),
-		},
+		ctx:               ctx,
+		mode:              CollectionsViewMode,
+		collectionsView:   views.NewCollectionsView(ctx.Collections),
+		addCollectionView: views.NewAddCollectionView(ctx.Collections),
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return m.tabs[m.activeTab].Init()
+	return m.collectionsView.Init()
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
 	switch msg := msg.(type) {
-
-	case messages.SwitchTabMsg:
-		if msg.TabIndex >= 0 && msg.TabIndex < len(m.tabs) {
-			m.activeTab = msg.TabIndex
-			return m, m.tabs[m.activeTab].OnFocus()
-		}
-		return m, nil
-
-	case messages.EditCollectionMsg:
-		if editTab, ok := m.tabs[2].(*tabs.EditCollectionTab); ok {
-			editTab.SetEditingCollection(msg.Label, msg.Value)
-		}
-		return m, nil
-	case messages.EditEndpointMsg:
-		if editTab, ok := m.tabs[5].(*tabs.EditEndpointTab); ok {
-			editTab.SetEditingEndpoint(msg)
-		}
-		return m, nil
-
 	case tea.KeyMsg:
 		switch msg.String() {
-		// removed q here because that was causing issues with input fields
-		case "ctrl+c":
-			return m, tea.Quit
-		default:
-			m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
-			return m, cmd
+		case "ctrl+c", "q":
+			if m.mode == CollectionsViewMode {
+				return m, tea.Quit
+			}
+			// For other views, 'q' goes back to collections
+			m.mode = CollectionsViewMode
+			return m, nil
+		case "a":
+			if m.mode == CollectionsViewMode {
+				m.mode = AddCollectionViewMode
+				return m, nil
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		return m, nil
-	default:
-		m.tabs[m.activeTab], cmd = m.tabs[m.activeTab].Update(msg)
-		return m, cmd
+	case views.BackToCollectionsMsg:
+		m.mode = CollectionsViewMode
+		// Reload collections to show any changes
+		return m, m.collectionsView.Init()
 	}
+
+	// Forward messages to the appropriate view
+	switch m.mode {
+	case CollectionsViewMode:
+		m.collectionsView, cmd = m.collectionsView.Update(msg)
+	case AddCollectionViewMode:
+		m.addCollectionView, cmd = m.addCollectionView.Update(msg)
+	}
+	
+	return m, cmd
 }
 
 func (m Model) View() string {
-	const headerFooterHeight = 1
-	const padding = 1
-	headerText := m.tabs[m.activeTab].Name()
-	instructions := m.tabs[m.activeTab].Instructions()
-
-	headerStyle := lipgloss.NewStyle().
-		Padding(1, 0).
-		Background(lipgloss.Color("62")).
-		Foreground(lipgloss.Color("230")).
-		Height(headerFooterHeight).
-		Width(len(headerText)+10).
-		Align(lipgloss.Center, lipgloss.Top)
-
-	footerStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("45")).
-		Width(m.width-50).
-		PaddingBottom(1).
-		Height(headerFooterHeight).
-		Align(lipgloss.Center, lipgloss.Center)
-
-	renderedHeader := headerStyle.Render(headerText)
-	renderedFooter := footerStyle.Render(instructions)
-
-	headerHeight := lipgloss.Height(renderedHeader)
-	footerHeight := lipgloss.Height(renderedFooter)
-
-	contentHeight := m.height - headerHeight - footerHeight
-	contentStyle := lipgloss.NewStyle().
-		Width(m.width).
-		Height(contentHeight).
-		Align(lipgloss.Center, lipgloss.Center)
-
-	content := m.tabs[m.activeTab].View()
-
-	return lipgloss.JoinVertical(lipgloss.Center, renderedHeader, contentStyle.Render(content), renderedFooter)
+	switch m.mode {
+	case CollectionsViewMode:
+		return m.collectionsView.View()
+	case AddCollectionViewMode:
+		return m.addCollectionView.View()
+	default:
+		return m.collectionsView.View()
+	}
 }
+

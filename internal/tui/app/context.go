@@ -1,4 +1,4 @@
-package global
+package app
 
 import (
 	"github.com/maniac-en/req/internal/backend/collections"
@@ -7,19 +7,24 @@ import (
 	"github.com/maniac-en/req/internal/backend/http"
 )
 
-type AppContext struct {
+type Context struct {
 	Collections *collections.CollectionsManager
 	Endpoints   *endpoints.EndpointsManager
 	HTTP        *http.HTTPManager
 	History     *history.HistoryManager
 }
 
-var globalAppContext *AppContext
-
-func SetAppContext(ctx *AppContext) {
-	globalAppContext = ctx
+func NewContext(
+	collections *collections.CollectionsManager,
+	endpoints *endpoints.EndpointsManager,
+	httpManager *http.HTTPManager,
+	history *history.HistoryManager,
+) *Context {
+	return &Context{
+		Collections: collections,
+		Endpoints:   endpoints,
+		HTTP:        httpManager,
+		History:     history,
+	}
 }
 
-func GetAppContext() *AppContext {
-	return globalAppContext
-}
