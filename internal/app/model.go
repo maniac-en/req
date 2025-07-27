@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 	"github.com/maniac-en/req/internal/tabs"
 )
@@ -12,19 +13,25 @@ type Model struct {
 	activeTab int
 	width     int
 	height    int
+
+	// Global state for sharing data
+	state *global.State
 }
 
 func InitialModel() Model {
-	tabList := []tabs.Tab{
-		tabs.NewCollectionsTab(),
-		tabs.NewAddCollectionTab(),
-		tabs.NewEditCollectionTab(),
-	}
+
+	globalState := global.NewGlobalState()
 
 	return Model{
-		tabs:      tabList,
-		activeTab: 0,
+		state: globalState,
+		tabs: []tabs.Tab{
+			tabs.NewCollectionsTab(globalState),
+			tabs.NewAddCollectionTab(),
+			tabs.NewEditCollectionTab(),
+			tabs.NewEndpointsTab(globalState),
+		},
 	}
+
 }
 
 func (m Model) Init() tea.Cmd {
