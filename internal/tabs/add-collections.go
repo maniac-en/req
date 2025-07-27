@@ -1,9 +1,12 @@
 package tabs
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 )
 
@@ -98,9 +101,11 @@ func (a *AddCollectionTab) View() string {
 }
 
 func (a *AddCollectionTab) addCollection(name string) (Tab, tea.Cmd) {
+	ctx := global.GetAppContext()
+	collection, _ := ctx.Collections.Create(context.Background(), name)
 	newOption := OptionPair{
-		Label: name,
-		Value: name,
+		Label: collection.GetName(),
+		Value: string(collection.GetID()),
 	}
 
 	GlobalCollections = append(GlobalCollections, newOption)

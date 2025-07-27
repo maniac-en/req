@@ -80,7 +80,7 @@ func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) 
 
 func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection delete failed validation", "id", id)
+		log.Error("collection delete failed validation", "id", id)
 		return crud.ErrInvalidInput
 	}
 

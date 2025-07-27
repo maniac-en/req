@@ -1,11 +1,14 @@
 package tabs
 
 import (
+	"context"
+	"strconv"
 	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 )
 
@@ -38,7 +41,19 @@ func (c *CollectionsTab) IsFiltering() bool {
 
 func (c *CollectionsTab) fetchOptions() tea.Cmd {
 	// this is here for now to replicate what a db call would look like
-	return tea.Tick(time.Millisecond*1000, func(time.Time) tea.Msg {
+	ctx := global.GetAppContext()
+	paginatedCollections, err := ctx.Collections.ListPaginated(context.Background(), 10, 0)
+	if err != nil {
+	}
+	options := []OptionPair{}
+	for i, _ := range paginatedCollections.Collections {
+		options = append(options, OptionPair{
+			Label: paginatedCollections.Collections[i].GetName(),
+			Value: strconv.FormatInt(paginatedCollections.Collections[i].GetID(), 10),
+		})
+	}
+	GlobalCollections = options
+	return tea.Tick(0, func(time.Time) tea.Msg {
 		return collectionsOpts{
 			options: GlobalCollections,
 		}
@@ -132,6 +147,12 @@ func (c *CollectionsTab) View() string {
 }
 
 func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {
+	ctx := global.GetAppContext()
+	id, _ := strconv.Atoi(value)
+	err := ctx.Collections.Delete(context.Background(), int64(id))
+	if err != nil {
+		return c.fetchOptions()
+	}
 	for i, collection := range GlobalCollections {
 		if collection.Value == value {
 			GlobalCollections = append(GlobalCollections[:i], GlobalCollections[i+1:]...)
