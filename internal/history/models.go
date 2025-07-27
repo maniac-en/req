@@ -6,7 +6,6 @@ import (
 
 	"github.com/maniac-en/req/internal/crud"
 	"github.com/maniac-en/req/internal/database"
-	"github.com/maniac-en/req/internal/log"
 )
 
 type HistoryManager struct {
@@ -26,12 +25,7 @@ func (h HistoryEntity) GetName() string {
 }
 
 func (h HistoryEntity) GetCreatedAt() time.Time {
-	t, err := time.Parse(time.RFC3339, h.ExecutedAt)
-	if err != nil {
-		log.Error("failed to parse executed_at timestamp", "executed_at", h.ExecutedAt, "error", err)
-		return time.Time{}
-	}
-	return t
+	return crud.ParseTimestamp(h.ExecutedAt)
 }
 
 // GetUpdatedAt returns creation time since history entries are immutable

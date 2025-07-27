@@ -5,7 +5,6 @@ import (
 
 	"github.com/maniac-en/req/internal/crud"
 	"github.com/maniac-en/req/internal/database"
-	"github.com/maniac-en/req/internal/log"
 )
 
 type EndpointEntity struct {
@@ -21,21 +20,11 @@ func (c EndpointEntity) GetName() string {
 }
 
 func (c EndpointEntity) GetCreatedAt() time.Time {
-	parsed, err := time.Parse(time.RFC3339, c.CreatedAt)
-	if err != nil {
-		log.Debug("failed to parse created_at timestamp", "timestamp", c.CreatedAt, "error", err)
-		return time.Time{}
-	}
-	return parsed
+	return crud.ParseTimestamp(c.CreatedAt)
 }
 
 func (c EndpointEntity) GetUpdatedAt() time.Time {
-	parsed, err := time.Parse(time.RFC3339, c.UpdatedAt)
-	if err != nil {
-		log.Debug("failed to parse updated_at timestamp", "timestamp", c.UpdatedAt, "error", err)
-		return time.Time{}
-	}
-	return parsed
+	return crud.ParseTimestamp(c.UpdatedAt)
 }
 
 type EndpointsManager struct {
