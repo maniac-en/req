@@ -66,7 +66,7 @@ func (t TextInput) View() string {
 	labelStyle := styles.TitleStyle.Copy().
 		Width(12).
 		Align(lipgloss.Right)
-	
+
 	return lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		labelStyle.Render(t.label+":"),

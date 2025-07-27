@@ -19,7 +19,6 @@ type CollectionsView struct {
 	initialized        bool
 	selectedIndex      int
 
-	// Backend pagination state
 	currentPage int
 	pageSize    int
 	pagination  crud.PaginationMetadata
@@ -89,9 +88,8 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
 
-		// Only set list size if it's been initialized
 		if v.initialized {
-			contentHeight := v.height - 4 // Account for header/footer
+			contentHeight := v.height - 4
 			v.list.SetSize(v.width-4, contentHeight)
 		}
 
@@ -101,12 +99,10 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			items[i] = components.NewCollectionItem(collection)
 		}
 
-		// Update pagination state
 		v.currentPage = msg.currentPage
 		v.pageSize = msg.pageSize
 		v.pagination = msg.pagination
 
-		// Create list with pagination info in title
 		title := fmt.Sprintf("Collections (Page %d/%d)", v.currentPage, v.pagination.TotalPages)
 		v.list = components.NewPaginatedList(items, title)
 		v.list.SetIndex(v.selectedIndex)
@@ -118,7 +114,6 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.initialized = true
 
 	case collectionsLoadError:
-		// Handle error - for now just mark as initialized
 		v.initialized = true
 
 	case tea.KeyMsg:
@@ -126,22 +121,19 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			break
 		}
 
-		// Handle pagination keys only when not filtering
 		if !v.list.IsFiltering() {
 			switch msg.String() {
 			case "n", "right":
-				// Next page
 				if v.currentPage < v.pagination.TotalPages {
-					v.selectedIndex = 0 // Reset selection on page change
+					v.selectedIndex = 0
 					return v, func() tea.Msg {
 						return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
 					}
 				}
 				return v, nil
 			case "p", "left":
-				// Previous page
 				if v.currentPage > 1 {
-					v.selectedIndex = 0 // Reset selection on page change
+					v.selectedIndex = 0
 					return v, func() tea.Msg {
 						return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
 					}
@@ -150,7 +142,6 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			}
 		}
 
-		// Forward keys to the list (handles filtering and navigation)
 		v.list, cmd = v.list.Update(msg)
 
 	default:
@@ -207,7 +198,7 @@ func (v CollectionsView) View() string {
 		instructions = "↑↓: navigate • a: add • /: filter • e: edit • x: delete • q: quit"
 	}
 	if v.pagination.TotalPages > 1 && !v.list.IsFiltering() {
-		instructions += fmt.Sprintf(" • p/n: prev/next page (%d/%d)", v.currentPage, v.pagination.TotalPages)
+		instructions += " • p/n: prev/next page"
 	}
 
 	return v.layout.FullView(

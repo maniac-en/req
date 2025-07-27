@@ -59,4 +59,3 @@ func (l Layout) FullView(title, content, instructions string) string {
 		footer,
 	)
 }
-

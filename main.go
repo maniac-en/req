@@ -35,7 +35,6 @@ var (
 	DB          *sql.DB
 )
 
-
 func initPaths() error {
 	// setup paths using OS-appropriate cache directory
 	userHomeDir, err := os.UserHomeDir()

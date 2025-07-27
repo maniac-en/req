@@ -35,7 +35,7 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 	l.Title = title
 	l.SetShowStatusBar(false)
 	l.SetFilteringEnabled(true) // Enable filtering
-	l.SetShowHelp(false) // Disable built-in help text
+	l.SetShowHelp(false)        // Disable built-in help text
 	l.Styles.Title = styles.TitleStyle
 
 	return PaginatedList{
@@ -46,7 +46,7 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 func (pl *PaginatedList) SetSize(width, height int) {
 	pl.width = width
 	pl.height = height
-	
+
 	// Safety check to prevent nil pointer dereference
 	if width > 0 && height > 0 {
 		pl.list.SetWidth(width)

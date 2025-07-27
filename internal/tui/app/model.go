@@ -33,7 +33,6 @@ func NewModel(ctx *Context) Model {
 		mode:              CollectionsViewMode,
 		collectionsView:   views.NewCollectionsView(ctx.Collections),
 		addCollectionView: views.NewAddCollectionView(ctx.Collections),
-		// editCollectionView will be created on demand
 	}
 }
 
@@ -46,7 +45,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		// Handle global keybinds only when not in filtering mode
 		isFiltering := m.mode == CollectionsViewMode && m.collectionsView.IsFiltering()
 
 		if !isFiltering {
@@ -55,7 +53,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.mode == CollectionsViewMode {
 					return m, tea.Quit
 				}
-				// For other views, 'q' goes back to collections
 				m.mode = CollectionsViewMode
 				return m, nil
 			case "a":
@@ -66,7 +63,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case "e":
 				if m.mode == CollectionsViewMode {
-					// Get selected collection and switch to edit mode
 					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
 						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = EditCollectionViewMode
@@ -78,7 +74,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case "x":
 				if m.mode == CollectionsViewMode {
-					// Delete selected collection
 					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
 						return m, func() tea.Msg {
 							err := m.ctx.Collections.Delete(context.Background(), selectedItem.ID)
@@ -96,7 +91,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 	case views.BackToCollectionsMsg:
 		m.mode = CollectionsViewMode
-		// Reload collections to show any changes
 		m.collectionsView.SetSelectedIndex(m.selectedIndex)
 		return m, m.collectionsView.Init()
 	case views.EditCollectionMsg:
@@ -104,21 +98,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, msg.Collection)
 		return m, nil
 	case views.CollectionDeletedMsg:
-		// Collection deleted, reload collections view
 		return m, m.collectionsView.Init()
 	case views.CollectionDeleteErrorMsg:
-		// Delete failed, just continue
 		return m, nil
 	case views.CollectionCreatedMsg:
-		// Collection created successfully, clear form and go to first page with first item selected
 		m.addCollectionView.ClearForm()
 		m.mode = CollectionsViewMode
-		m.selectedIndex = 0 // Reset to first item
+		m.selectedIndex = 0
 		m.collectionsView.SetSelectedIndex(m.selectedIndex)
 		return m, m.collectionsView.Init()
 	}
 
-	// Forward messages to the appropriate view
 	switch m.mode {
 	case CollectionsViewMode:
 		m.collectionsView, cmd = m.collectionsView.Update(msg)
