@@ -9,7 +9,6 @@ import (
 	"github.com/maniac-en/req/internal/testutils"
 )
 
-
 func TestCollectionsManagerCRUD(t *testing.T) {
 	db := testutils.SetupTestDB(t, "collections")
 	manager := NewCollectionsManager(db)

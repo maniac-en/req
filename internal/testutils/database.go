@@ -23,7 +23,7 @@ func SetupTestDB(t *testing.T, tables ...string) *database.Queries {
 		if schema == "" {
 			t.Fatalf("Unknown table: %s", table)
 		}
-		
+
 		if _, err := db.Exec(schema); err != nil {
 			t.Fatalf("Failed to create %s table: %v", table, err)
 		}
@@ -75,7 +75,7 @@ func getTableSchema(table string) string {
 				executed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 			);`,
 	}
-	
+
 	return schemas[table]
 }
 

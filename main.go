@@ -45,13 +45,19 @@ type Config struct {
 }
 
 func initPaths() error {
-	// setup paths based on user's home directory
+	// setup paths using OS-appropriate cache directory
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("error reading user's home path: %w", err)
 	}
 	USERHOMEDIR = userHomeDir
-	APPDIR = filepath.Join(USERHOMEDIR, ".cache", "req")
+
+	// use OS-appropriate cache directory
+	userCacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return fmt.Errorf("error reading user's cache path: %w", err)
+	}
+	APPDIR = filepath.Join(userCacheDir, "req")
 	if err := os.MkdirAll(APPDIR, 0o755); err != nil {
 		return fmt.Errorf("error creating app directory: %w", err)
 	}

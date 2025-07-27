@@ -8,7 +8,6 @@ import (
 	"github.com/maniac-en/req/internal/testutils"
 )
 
-
 func TestHistoryManagerCRUD(t *testing.T) {
 	ctx := context.Background()
 	db := testutils.SetupTestDB(t, "history")

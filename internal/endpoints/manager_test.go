@@ -8,7 +8,6 @@ import (
 	"github.com/maniac-en/req/internal/testutils"
 )
 
-
 func TestEndpointsManagerCRUD(t *testing.T) {
 	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
