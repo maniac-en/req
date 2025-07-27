@@ -2,50 +2,15 @@ package history
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 	"time"
 
-	"github.com/maniac-en/req/internal/database"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/maniac-en/req/internal/testutils"
 )
-
-func setupTestDB(t *testing.T) *database.Queries {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatalf("failed to open in-memory database: %v", err)
-	}
-
-	// Use same schema as migration
-	schema := `
-	CREATE TABLE history (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		collection_id INTEGER,
-		collection_name TEXT,
-		endpoint_name TEXT,
-		method TEXT NOT NULL,
-		url TEXT NOT NULL,
-		status_code INTEGER NOT NULL,
-		duration INTEGER NOT NULL,
-		response_size INTEGER DEFAULT 0,
-		request_headers TEXT DEFAULT '{}',
-		query_params TEXT DEFAULT '{}',
-		request_body TEXT DEFAULT '',
-		response_body TEXT DEFAULT '',
-		response_headers TEXT DEFAULT '{}',
-		executed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	if _, err := db.Exec(schema); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
-	}
-
-	return database.New(db)
-}
 
 func TestHistoryManagerCRUD(t *testing.T) {
 	ctx := context.Background()
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "history")
 	manager := NewHistoryManager(db)
 
 	t.Run("Create returns error", func(t *testing.T) {
@@ -86,7 +51,7 @@ func TestHistoryManagerCRUD(t *testing.T) {
 
 func TestRecordExecution(t *testing.T) {
 	ctx := context.Background()
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "history")
 	manager := NewHistoryManager(db)
 
 	t.Run("valid execution", func(t *testing.T) {
@@ -162,7 +127,7 @@ func TestRecordExecution(t *testing.T) {
 
 func TestListByCollection(t *testing.T) {
 	ctx := context.Background()
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "history")
 	manager := NewHistoryManager(db)
 
 	// Create test data
@@ -259,7 +224,7 @@ func TestListByCollection(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	ctx := context.Background()
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "history")
 	manager := NewHistoryManager(db)
 
 	// Create test entry

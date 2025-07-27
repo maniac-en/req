@@ -2,38 +2,15 @@ package collections
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"testing"
 
 	"github.com/maniac-en/req/internal/crud"
-	"github.com/maniac-en/req/internal/database"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/maniac-en/req/internal/testutils"
 )
 
-func setupTestDB(t *testing.T) *database.Queries {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	schema := `
-	CREATE TABLE collections (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);`
-
-	if _, err := db.Exec(schema); err != nil {
-		t.Fatalf("Failed to create test schema: %v", err)
-	}
-
-	return database.New(db)
-}
-
 func TestCollectionsManagerCRUD(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections")
 	manager := NewCollectionsManager(db)
 	ctx := context.Background()
 
@@ -131,7 +108,7 @@ func TestCollectionsManagerCRUD(t *testing.T) {
 }
 
 func TestCollectionsManagerValidation(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections")
 	manager := NewCollectionsManager(db)
 	ctx := context.Background()
 

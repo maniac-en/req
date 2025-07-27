@@ -1,4 +1,4 @@
-// Package log provides structured logging with terminal and file output.
+// Package log provides structured file-based logging with rotation.
 package log
 
 import (
@@ -17,64 +17,54 @@ type Logger struct {
 	fileLogger *lumberjack.Logger
 }
 
+type Config struct {
+	Level       slog.Level
+	LogFilePath string
+}
+
 var (
 	globalLogger *Logger
 	once         sync.Once
 )
 
-type Config struct {
-	Level       slog.Level
-	LogFilePath string
-	Verbose     bool
-}
-
 func Initialize(config Config) {
 	once.Do(func() {
-		var handlers []slog.Handler
-
-		var fileLogger *lumberjack.Logger
-		if config.LogFilePath != "" {
-			fileLogger = &lumberjack.Logger{
-				Filename:   config.LogFilePath,
-				MaxSize:    10,
-				MaxBackups: 2,
-				MaxAge:     7,
-				Compress:   true,
-			}
-			fileHandler := slog.NewJSONHandler(fileLogger, &slog.HandlerOptions{
-				Level: config.Level,
-			})
-			handlers = append(handlers, fileHandler)
-		}
-
-		if config.Verbose {
-			terminalHandler := NewDualHandler(os.Stderr, false, config.Level)
-			handlers = append(handlers, terminalHandler)
-		}
-
-		var handler slog.Handler
-		if len(handlers) == 1 {
-			handler = handlers[0]
-		} else if len(handlers) > 1 {
-			handler = NewMultiHandler(handlers...)
-		} else {
-			handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-				Level: config.Level,
-			})
-		}
-
-		globalLogger = &Logger{
-			Logger:     slog.New(handler),
-			fileLogger: fileLogger,
-		}
+		globalLogger = createLogger(config)
 	})
+}
+
+func createLogger(config Config) *Logger {
+	var fileLogger *lumberjack.Logger
+	var handler slog.Handler
+
+	if config.LogFilePath != "" {
+		fileLogger = &lumberjack.Logger{
+			Filename:   config.LogFilePath,
+			MaxSize:    10, // MB
+			MaxBackups: 2,
+			MaxAge:     7, // days
+			Compress:   true,
+		}
+		handler = slog.NewJSONHandler(fileLogger, &slog.HandlerOptions{
+			Level: config.Level,
+		})
+	} else {
+		// Fallback to stderr if no file path provided
+		handler = slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
+			Level: config.Level,
+		})
+	}
+
+	return &Logger{
+		Logger:     slog.New(handler),
+		fileLogger: fileLogger,
+	}
 }
 
 func Global() *Logger {
 	if globalLogger == nil {
 		Initialize(Config{
-			Level:   slog.LevelInfo,
-			Verbose: false,
+			Level: slog.LevelInfo,
 		})
 	}
 	return globalLogger
@@ -91,6 +81,7 @@ func (l *Logger) WithRequestID(requestID string) *slog.Logger {
 	return l.With("request_id", requestID)
 }
 
+// Global convenience functions
 func Debug(msg string, args ...any) {
 	Global().Debug(msg, args...)
 }
@@ -112,6 +103,7 @@ func Fatal(msg string, args ...any) {
 	os.Exit(1)
 }
 
+// Request ID utilities
 func GenerateRequestID() string {
 	return fmt.Sprintf("req_%d", time.Now().UnixNano())
 }

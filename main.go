@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"embed"
-	"flag"
 	"fmt"
 	"io/fs"
 	"log/slog"
@@ -46,13 +45,19 @@ type Config struct {
 }
 
 func initPaths() error {
-	// setup paths based on user's home directory
+	// setup paths using OS-appropriate cache directory
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {
 		return fmt.Errorf("error reading user's home path: %w", err)
 	}
 	USERHOMEDIR = userHomeDir
-	APPDIR = filepath.Join(USERHOMEDIR, ".cache", "req")
+
+	// use OS-appropriate cache directory
+	userCacheDir, err := os.UserCacheDir()
+	if err != nil {
+		return fmt.Errorf("error reading user's cache path: %w", err)
+	}
+	APPDIR = filepath.Join(userCacheDir, "req")
 	if err := os.MkdirAll(APPDIR, 0o755); err != nil {
 		return fmt.Errorf("error creating app directory: %w", err)
 	}
@@ -101,9 +106,6 @@ func runMigrations() error {
 }
 
 func main() {
-	verbose := flag.Bool("verbose", false, "enable verbose logging to terminal")
-	flag.Parse()
-
 	// initialize paths first
 	if err := initPaths(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize: %v\n", err)
@@ -112,13 +114,12 @@ func main() {
 
 	// initialize logging
 	logLevel := slog.LevelInfo
-	if *verbose {
+	if os.Getenv("REQ_DEBUG") == "1" || os.Getenv("REQ_LOG_LEVEL") == "debug" {
 		logLevel = slog.LevelDebug
 	}
 	log.Initialize(log.Config{
 		Level:       logLevel,
 		LogFilePath: LOGPATH,
-		Verbose:     *verbose,
 	})
 	defer func() {
 		if err := log.Global().Close(); err != nil {

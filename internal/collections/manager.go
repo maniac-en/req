@@ -15,7 +15,7 @@ func NewCollectionsManager(db *database.Queries) *CollectionsManager {
 
 func (c *CollectionsManager) Create(ctx context.Context, name string) (CollectionEntity, error) {
 	if err := crud.ValidateName(name); err != nil {
-		log.Debug("collection creation failed validation", "name", name)
+		log.Warn("collection creation failed validation", "name", name)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
@@ -32,7 +32,7 @@ func (c *CollectionsManager) Create(ctx context.Context, name string) (Collectio
 
 func (c *CollectionsManager) Read(ctx context.Context, id int64) (CollectionEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection read failed validation", "id", id)
+		log.Warn("collection read failed validation", "id", id)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
@@ -52,11 +52,11 @@ func (c *CollectionsManager) Read(ctx context.Context, id int64) (CollectionEnti
 
 func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) (CollectionEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
-		log.Debug("collection update failed ID validation", "id", id)
+		log.Warn("collection update failed ID validation", "id", id)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 	if err := crud.ValidateName(name); err != nil {
-		log.Debug("collection update failed name validation", "name", name)
+		log.Warn("collection update failed name validation", "name", name)
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
@@ -80,7 +80,7 @@ func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) 
 
 func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 	if err := crud.ValidateID(id); err != nil {
-		log.Error("collection delete failed validation", "id", id)
+		log.Warn("collection delete failed validation", "id", id)
 		return crud.ErrInvalidInput
 	}
 
@@ -105,6 +105,14 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 }
 
 func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedCollections, error) {
+	// Warn about unusual pagination parameters
+	if limit > 1000 {
+		log.Warn("large pagination limit requested", "limit", limit)
+	}
+	if offset < 0 {
+		log.Warn("negative pagination offset", "offset", offset)
+	}
+
 	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
 
 	total, err := c.DB.CountCollections(ctx)

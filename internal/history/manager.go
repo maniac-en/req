@@ -158,17 +158,17 @@ func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData
 
 func validateExecutionData(data ExecutionData) error {
 	if err := crud.ValidateName(data.Method); err != nil {
-		log.Debug("execution validation failed: invalid method", "method", data.Method)
+		log.Warn("execution validation failed: invalid method", "method", data.Method)
 		return fmt.Errorf("invalid method: %w", err)
 	}
 
 	if err := crud.ValidateName(data.URL); err != nil {
-		log.Debug("execution validation failed: invalid URL", "url", data.URL)
+		log.Warn("execution validation failed: invalid URL", "url", data.URL)
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
 	if data.StatusCode < 100 || data.StatusCode > 599 {
-		log.Debug("execution validation failed: invalid status code", "status_code", data.StatusCode)
+		log.Warn("execution validation failed: invalid status code", "status_code", data.StatusCode)
 		return fmt.Errorf("invalid status code: %d", data.StatusCode)
 	}
 

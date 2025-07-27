@@ -100,12 +100,32 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 		}
 	}()
 
+	// Read response body
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("failed to read response body", "error", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
 	duration := time.Since(start)
+
+	// Log warnings for concerning HTTP responses
+	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+		log.Warn("HTTP client error", "status", resp.StatusCode, "url", req.URL)
+	} else if resp.StatusCode >= 500 {
+		log.Warn("HTTP server error", "status", resp.StatusCode, "url", req.URL)
+	}
+
+	// Warn about slow requests (>5 seconds)
+	if duration > 5*time.Second {
+		log.Warn("slow HTTP request", "duration", duration, "url", req.URL)
+	}
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
 		Status:     resp.Status,
 		Headers:    resp.Header,
+		Body:       string(responseBody),
 		Duration:   duration,
 	}
 
