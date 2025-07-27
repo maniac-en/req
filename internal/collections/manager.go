@@ -19,7 +19,7 @@ func (c *CollectionsManager) Create(ctx context.Context, name string) (Collectio
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.DebugIf("creating collection", "name", name)
+	log.Debug("creating collection", "name", name)
 	collection, err := c.DB.CreateCollection(ctx, name)
 	if err != nil {
 		log.Error("failed to create collection", "name", name, "error", err)
@@ -36,7 +36,7 @@ func (c *CollectionsManager) Read(ctx context.Context, id int64) (CollectionEnti
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.DebugIf("reading collection", "id", id)
+	log.Debug("reading collection", "id", id)
 	collection, err := c.DB.GetCollection(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -60,7 +60,7 @@ func (c *CollectionsManager) Update(ctx context.Context, id int64, name string) 
 		return CollectionEntity{}, crud.ErrInvalidInput
 	}
 
-	log.DebugIf("updating collection", "id", id, "name", name)
+	log.Debug("updating collection", "id", id, "name", name)
 	collection, err := c.DB.UpdateCollectionName(ctx, database.UpdateCollectionNameParams{
 		Name: name,
 		ID:   id,
@@ -84,7 +84,7 @@ func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 		return crud.ErrInvalidInput
 	}
 
-	log.DebugIf("deleting collection", "id", id)
+	log.Debug("deleting collection", "id", id)
 	err := c.DB.DeleteCollection(ctx, id)
 	if err != nil {
 		log.Error("failed to delete collection", "id", id, "error", err)
@@ -96,7 +96,7 @@ func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 }
 
 func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, error) {
-	log.DebugIf("listing all collections with default pagination")
+	log.Debug("listing all collections with default pagination")
 	paginated, err := c.ListPaginated(ctx, 50, 0)
 	if err != nil {
 		return nil, err
@@ -113,7 +113,7 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 		log.Warn("negative pagination offset", "offset", offset)
 	}
 
-	log.DebugIf("listing paginated collections", "limit", limit, "offset", offset)
+	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
 
 	total, err := c.DB.CountCollections(ctx)
 	if err != nil {

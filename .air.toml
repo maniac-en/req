@@ -4,7 +4,6 @@ tmp_dir = "tmp"
 
 [build]
   bin = "tmp/req"
-  args_bin = ["-verbose"]
   cmd = "go build -o ./tmp/req ."
   delay = 1000
   exclude_dir = ["tmp", "testdata"]

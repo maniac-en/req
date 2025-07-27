@@ -1,109 +1,101 @@
 package log
 
 import (
-	"bytes"
 	"context"
 	"log/slog"
 	"os"
 	"strings"
 	"testing"
-	"time"
 )
 
-func TestLoggerFactory(t *testing.T) {
-	factory := NewLoggerFactory()
+func TestInitialize(t *testing.T) {
+	t.Run("creates working logger with file", func(t *testing.T) {
+		tempFile, err := os.CreateTemp("", "test*.log")
+		if err != nil {
+			t.Fatalf("failed to create temp file: %v", err)
+		}
+		defer os.Remove(tempFile.Name())
+		tempFile.Close()
 
-	t.Run("creates working logger", func(t *testing.T) {
-		config := Config{Level: slog.LevelInfo, Verbose: true}
-		logger := factory.CreateLogger(config)
+		Initialize(Config{
+			Level:       slog.LevelInfo,
+			LogFilePath: tempFile.Name(),
+		})
 
+		logger := Global()
 		if logger == nil {
-			t.Fatal("factory should create logger")
+			t.Fatal("Initialize should create global logger")
+		}
+
+		// Test that we can log
+		logger.Info("test message")
+
+		err = logger.Close()
+		if err != nil {
+			t.Errorf("Close should not error: %v", err)
 		}
 	})
 
-	t.Run("creates independent instances", func(t *testing.T) {
-		config := Config{Level: slog.LevelInfo}
-		logger1 := factory.CreateLogger(config)
-		logger2 := factory.CreateLogger(config)
+	t.Run("creates logger without file path", func(t *testing.T) {
+		Initialize(Config{Level: slog.LevelInfo})
 
-		if logger1 == logger2 {
-			t.Error("factory should create independent instances")
+		logger := Global()
+		if logger == nil {
+			t.Fatal("Initialize should create global logger even without file path")
 		}
 	})
-}
-
-func TestDualHandler(t *testing.T) {
-	var buf bytes.Buffer
-	handler := NewDualHandler(&buf, false, slog.LevelInfo)
-
-	record := slog.NewRecord(time.Now(), slog.LevelInfo, "test message", 0)
-	record.Add("key", "value")
-
-	err := handler.Handle(context.Background(), record)
-	if err != nil {
-		t.Fatalf("handler failed: %v", err)
-	}
-
-	output := buf.String()
-	if !strings.Contains(output, "test message") {
-		t.Error("output should contain message")
-	}
-	if !strings.Contains(output, "key=value") {
-		t.Error("output should contain attributes")
-	}
 }
 
 func TestRequestIDFunctions(t *testing.T) {
-	id1 := GenerateRequestID()
-	id2 := GenerateRequestID()
+	t.Run("generates unique request IDs", func(t *testing.T) {
+		id1 := GenerateRequestID()
+		id2 := GenerateRequestID()
 
-	if id1 == id2 {
-		t.Error("IDs should be unique")
-	}
-	if !strings.HasPrefix(id1, "req_") {
-		t.Error("ID should have req_ prefix")
-	}
-
-	ctx := ContextWithRequestID(context.Background(), "test123")
-	retrieved := RequestIDFromContext(ctx)
-
-	if retrieved != "test123" {
-		t.Errorf("expected test123, got %s", retrieved)
-	}
-}
-
-func TestGlobalLogger(t *testing.T) {
-	// Test that global functions work
-	Info("test info message")
-	Debug("test debug message")
-	Warn("test warn message")
-	Error("test error message")
-
-	logger := Global()
-	if logger == nil {
-		t.Error("Global() should return logger")
-	}
-}
-
-func TestLoggerWithFile(t *testing.T) {
-	tempFile, err := os.CreateTemp("", "test*.log")
-	if err != nil {
-		t.Fatalf("failed to create temp file: %v", err)
-	}
-	defer os.Remove(tempFile.Name())
-	tempFile.Close()
-
-	factory := NewLoggerFactory()
-	logger := factory.CreateLogger(Config{
-		Level:       slog.LevelInfo,
-		LogFilePath: tempFile.Name(),
+		if id1 == id2 {
+			t.Error("IDs should be unique")
+		}
+		if !strings.HasPrefix(id1, "req_") {
+			t.Error("ID should have req_ prefix")
+		}
 	})
 
-	logger.Info("test file logging")
+	t.Run("context request ID functions", func(t *testing.T) {
+		ctx := ContextWithRequestID(context.Background(), "test123")
+		retrieved := RequestIDFromContext(ctx)
 
-	err = logger.Close()
-	if err != nil {
-		t.Errorf("Close should not error: %v", err)
-	}
+		if retrieved != "test123" {
+			t.Errorf("expected test123, got %s", retrieved)
+		}
+	})
+
+	t.Run("request ID from empty context", func(t *testing.T) {
+		retrieved := RequestIDFromContext(context.Background())
+		if retrieved != "" {
+			t.Errorf("expected empty string, got %s", retrieved)
+		}
+	})
+}
+
+func TestGlobalLoggerFunctions(t *testing.T) {
+	t.Run("global functions work", func(t *testing.T) {
+		// These should not panic
+		Info("test info message")
+		Debug("test debug message")
+		Warn("test warn message")
+		Error("test error message")
+
+		logger := Global()
+		if logger == nil {
+			t.Error("Global() should return logger")
+		}
+	})
+
+	t.Run("with request ID", func(t *testing.T) {
+		logger := Global()
+		loggerWithID := logger.WithRequestID("test-req-123")
+
+		if loggerWithID == nil {
+			t.Error("WithRequestID should return logger")
+		}
+	})
 }
