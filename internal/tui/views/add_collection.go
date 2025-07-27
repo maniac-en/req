@@ -62,6 +62,7 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 		
 	case CollectionCreatedMsg:
 		// Collection was created successfully
+		v.form.Clear()
 		return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		
 	case CollectionCreateErrorMsg:

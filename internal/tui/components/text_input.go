@@ -48,6 +48,10 @@ func (t *TextInput) Blur() {
 	t.textInput.Blur()
 }
 
+func (t *TextInput) Clear() {
+	t.textInput.SetValue("")
+}
+
 func (t TextInput) Focused() bool {
 	return t.textInput.Focused()
 }

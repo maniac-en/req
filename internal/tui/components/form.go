@@ -64,6 +64,12 @@ func (f Form) GetValues() []string {
 	return values
 }
 
+func (f *Form) Clear() {
+	for i := range f.inputs {
+		f.inputs[i].Clear()
+	}
+}
+
 func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
