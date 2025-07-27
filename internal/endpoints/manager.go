@@ -25,7 +25,7 @@ func (e *EndpointsManager) Read(ctx context.Context, id int64) (EndpointEntity, 
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
-	log.DebugIf("reading endpoint", "id", id)
+	log.Debug("reading endpoint", "id", id)
 	endpoint, err := e.DB.GetEndpoint(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -49,7 +49,7 @@ func (e *EndpointsManager) Delete(ctx context.Context, id int64) error {
 		return crud.ErrInvalidInput
 	}
 
-	log.DebugIf("deleting endpoint", "id", id)
+	log.Debug("deleting endpoint", "id", id)
 	err := e.DB.DeleteEndpoint(ctx, id)
 	if err != nil {
 		log.Error("failed to delete endpoint", "id", id, "error", err)
@@ -70,7 +70,7 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 		return nil, crud.ErrInvalidInput
 	}
 
-	log.DebugIf("listing paginated endpoints", "collection_id", collectionID, "limit", limit, "offset", offset)
+	log.Debug("listing paginated endpoints", "collection_id", collectionID, "limit", limit, "offset", offset)
 
 	total, err := e.DB.CountEndpointsByCollection(ctx, collectionID)
 	if err != nil {
@@ -132,7 +132,7 @@ func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData
 		queryParamsJSON = string(qpBytes)
 	}
 
-	log.DebugIf("creating endpoint", "collection_id", data.CollectionID, "name", data.Name, "method", data.Method, "url", data.URL)
+	log.Debug("creating endpoint", "collection_id", data.CollectionID, "name", data.Name, "method", data.Method, "url", data.URL)
 	endpoint, err := e.DB.CreateEndpoint(ctx, database.CreateEndpointParams{
 		CollectionID: data.CollectionID,
 		Name:         data.Name,
@@ -180,7 +180,7 @@ func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data En
 		queryParamsJSON = string(qpBytes)
 	}
 
-	log.DebugIf("updating endpoint", "id", id, "name", data.Name, "method", data.Method, "url", data.URL)
+	log.Debug("updating endpoint", "id", id, "name", data.Name, "method", data.Method, "url", data.URL)
 	endpoint, err := e.DB.UpdateEndpoint(ctx, database.UpdateEndpointParams{
 		Name:        data.Name,
 		Method:      data.Method,

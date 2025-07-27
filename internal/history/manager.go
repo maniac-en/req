@@ -31,7 +31,7 @@ func (h *HistoryManager) Read(ctx context.Context, id int64) (HistoryEntity, err
 		return HistoryEntity{}, err
 	}
 
-	log.DebugIf("read history entry", "id", id)
+	log.Debug("read history entry", "id", id)
 	return HistoryEntity{History: history}, nil
 }
 
@@ -111,7 +111,7 @@ func (h *HistoryManager) RecordExecution(ctx context.Context, data ExecutionData
 		return HistoryEntity{}, err
 	}
 
-	log.DebugIf("recording execution", "method", data.Method, "url", data.URL, "status", data.StatusCode)
+	log.Debug("recording execution", "method", data.Method, "url", data.URL, "status", data.StatusCode)
 
 	// Marshal to JSON for database storage
 	requestHeaders, err := json.Marshal(data.Headers)

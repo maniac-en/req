@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"embed"
-	"flag"
 	"fmt"
 	"io/fs"
 	"log/slog"
@@ -106,9 +105,6 @@ func runMigrations() error {
 }
 
 func main() {
-	verbose := flag.Bool("verbose", false, "enable verbose logging to terminal")
-	flag.Parse()
-
 	// initialize paths first
 	if err := initPaths(); err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to initialize: %v\n", err)
@@ -117,13 +113,12 @@ func main() {
 
 	// initialize logging
 	logLevel := slog.LevelInfo
-	if *verbose {
+	if os.Getenv("REQ_DEBUG") == "1" || os.Getenv("REQ_LOG_LEVEL") == "debug" {
 		logLevel = slog.LevelDebug
 	}
 	log.Initialize(log.Config{
 		Level:       logLevel,
 		LogFilePath: LOGPATH,
-		Verbose:     *verbose,
 	})
 	defer func() {
 		if err := log.Global().Close(); err != nil {

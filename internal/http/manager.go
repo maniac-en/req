@@ -59,7 +59,7 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 		return nil, err
 	}
 
-	log.DebugIf("executing HTTP request", "method", req.Method, "url", req.URL)
+	log.Debug("executing HTTP request", "method", req.Method, "url", req.URL)
 
 	requestURL, err := h.buildURL(req.URL, req.QueryParams)
 	if err != nil {
