@@ -22,6 +22,55 @@ var (
 	once         sync.Once
 )
 
+// LoggerFactory creates Logger instances for dependency injection
+type LoggerFactory struct{}
+
+// NewLoggerFactory creates a new LoggerFactory
+func NewLoggerFactory() *LoggerFactory {
+	return &LoggerFactory{}
+}
+
+// CreateLogger creates a new Logger with the given config
+func (f *LoggerFactory) CreateLogger(config Config) *Logger {
+	var handlers []slog.Handler
+
+	var fileLogger *lumberjack.Logger
+	if config.LogFilePath != "" {
+		fileLogger = &lumberjack.Logger{
+			Filename:   config.LogFilePath,
+			MaxSize:    10,
+			MaxBackups: 2,
+			MaxAge:     7,
+			Compress:   true,
+		}
+		fileHandler := slog.NewJSONHandler(fileLogger, &slog.HandlerOptions{
+			Level: config.Level,
+		})
+		handlers = append(handlers, fileHandler)
+	}
+
+	if config.Verbose {
+		terminalHandler := NewDualHandler(os.Stderr, false, config.Level)
+		handlers = append(handlers, terminalHandler)
+	}
+
+	var handler slog.Handler
+	if len(handlers) == 1 {
+		handler = handlers[0]
+	} else if len(handlers) > 1 {
+		handler = NewMultiHandler(handlers...)
+	} else {
+		handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+			Level: config.Level,
+		})
+	}
+
+	return &Logger{
+		Logger:     slog.New(handler),
+		fileLogger: fileLogger,
+	}
+}
+
 type Config struct {
 	Level       slog.Level
 	LogFilePath string
@@ -30,43 +79,8 @@ type Config struct {
 
 func Initialize(config Config) {
 	once.Do(func() {
-		var handlers []slog.Handler
-
-		var fileLogger *lumberjack.Logger
-		if config.LogFilePath != "" {
-			fileLogger = &lumberjack.Logger{
-				Filename:   config.LogFilePath,
-				MaxSize:    10,
-				MaxBackups: 2,
-				MaxAge:     7,
-				Compress:   true,
-			}
-			fileHandler := slog.NewJSONHandler(fileLogger, &slog.HandlerOptions{
-				Level: config.Level,
-			})
-			handlers = append(handlers, fileHandler)
-		}
-
-		if config.Verbose {
-			terminalHandler := NewDualHandler(os.Stderr, false, config.Level)
-			handlers = append(handlers, terminalHandler)
-		}
-
-		var handler slog.Handler
-		if len(handlers) == 1 {
-			handler = handlers[0]
-		} else if len(handlers) > 1 {
-			handler = NewMultiHandler(handlers...)
-		} else {
-			handler = slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
-				Level: config.Level,
-			})
-		}
-
-		globalLogger = &Logger{
-			Logger:     slog.New(handler),
-			fileLogger: fileLogger,
-		}
+		factory := NewLoggerFactory()
+		globalLogger = factory.CreateLogger(config)
 	})
 }
 
