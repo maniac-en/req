@@ -39,14 +39,14 @@ func (h HistoryEntity) GetUpdatedAt() time.Time {
 }
 
 type PaginatedHistory struct {
-	Items       []HistoryEntity
-	Total       int64
-	HasNext     bool
-	HasPrev     bool
-	Limit       int
-	Offset      int
-	TotalPages  int
-	CurrentPage int
+	Items       []HistoryEntity `json:"items"`
+	Total       int64           `json:"total"`
+	HasNext     bool            `json:"has_next"`
+	HasPrev     bool            `json:"has_prev"`
+	Limit       int             `json:"limit"`
+	Offset      int             `json:"offset"`
+	TotalPages  int             `json:"total_pages"`
+	CurrentPage int             `json:"current_page"`
 }
 
 type ExecutionData struct {

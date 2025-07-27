@@ -96,14 +96,14 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 	// Calculate pagination metadata
 	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
 	currentPage := (offset / limit) + 1
-	hasNext := offset+len(endpoints) < int(total)
+	hasNext := (offset + limit) < int(total)
 	hasPrev := offset > 0
 
 	result := &PaginatedEndpoints{
 		Endpoints:   entities,
 		Total:       total,
-		Offset:      int(offset),
-		Limit:       int(limit),
+		Offset:      offset,
+		Limit:       limit,
 		HasNext:     hasNext,
 		HasPrev:     hasPrev,
 		TotalPages:  totalPages,
