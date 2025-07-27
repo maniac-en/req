@@ -100,12 +100,20 @@ func (h *HTTPManager) ExecuteRequest(req *Request) (*Response, error) {
 		}
 	}()
 
+	// Read response body
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Error("failed to read response body", "error", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
 	duration := time.Since(start)
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
 		Status:     resp.Status,
 		Headers:    resp.Header,
+		Body:       string(responseBody),
 		Duration:   duration,
 	}
 
