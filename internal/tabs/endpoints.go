@@ -85,6 +85,10 @@ func (e *EndpointsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			return e, func() tea.Msg {
 				return messages.SwitchTabMsg{TabIndex: 0}
 			}
+		case "+":
+			return e, func() tea.Msg {
+				return messages.SwitchTabMsg{TabIndex: 4}
+			}
 		}
 	default:
 		e.selectUI, cmd = e.selectUI.Update(msg)
