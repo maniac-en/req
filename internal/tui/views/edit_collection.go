@@ -9,35 +9,40 @@ import (
 	"github.com/maniac-en/req/internal/tui/components"
 )
 
-type AddCollectionView struct {
+type EditCollectionView struct {
 	layout             components.Layout
 	form               components.Form
 	collectionsManager *collections.CollectionsManager
+	collection         collections.CollectionEntity
 	width              int
 	height             int
 	submitting         bool
 }
 
-func NewAddCollectionView(collectionsManager *collections.CollectionsManager) AddCollectionView {
+func NewEditCollectionView(collectionsManager *collections.CollectionsManager, collection collections.CollectionEntity) EditCollectionView {
 	inputs := []components.TextInput{
 		components.NewTextInput("Name", "Enter collection name"),
 	}
 	
-	form := components.NewForm("Add Collection", inputs)
-	form.SetSubmitText("Create")
+	// Pre-populate with existing collection name
+	inputs[0].SetValue(collection.Name)
 	
-	return AddCollectionView{
+	form := components.NewForm("Edit Collection", inputs)
+	form.SetSubmitText("Update")
+	
+	return EditCollectionView{
 		layout:             components.NewLayout(),
 		form:               form,
 		collectionsManager: collectionsManager,
+		collection:         collection,
 	}
 }
 
-func (v AddCollectionView) Init() tea.Cmd {
+func (v EditCollectionView) Init() tea.Cmd {
 	return nil
 }
 
-func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
+func (v EditCollectionView) Update(msg tea.Msg) (EditCollectionView, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -60,11 +65,11 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 			return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		}
 		
-	case CollectionCreatedMsg:
-		// Collection was created successfully
+	case CollectionUpdatedMsg:
+		// Collection was updated successfully
 		return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		
-	case CollectionCreateErrorMsg:
+	case CollectionUpdateErrorMsg:
 		// Handle error - for now just stop submitting
 		v.submitting = false
 	}
@@ -74,71 +79,41 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 	return v, cmd
 }
 
-func (v *AddCollectionView) submitForm() tea.Msg {
+func (v *EditCollectionView) submitForm() tea.Msg {
 	v.submitting = true
 	values := v.form.GetValues()
 	
 	if len(values) == 0 || values[0] == "" {
-		return CollectionCreateErrorMsg{err: crud.ErrInvalidInput}
+		return CollectionUpdateErrorMsg{err: crud.ErrInvalidInput}
 	}
 	
-	return v.createCollection(values[0])
+	return v.updateCollection(values[0])
 }
 
-func (v *AddCollectionView) createCollection(name string) tea.Msg {
-	collection, err := v.collectionsManager.Create(context.Background(), name)
+func (v *EditCollectionView) updateCollection(name string) tea.Msg {
+	// Update the collection using the manager's Update method
+	updatedCollection, err := v.collectionsManager.Update(context.Background(), v.collection.ID, name)
 	if err != nil {
-		return CollectionCreateErrorMsg{err: err}
+		return CollectionUpdateErrorMsg{err: err}
 	}
-	return CollectionCreatedMsg{collection: collection}
+	return CollectionUpdatedMsg{collection: updatedCollection}
 }
 
-func (v AddCollectionView) View() string {
+func (v EditCollectionView) View() string {
 	if v.submitting {
 		return v.layout.FullView(
-			"Add Collection",
-			"Creating collection...",
+			"Edit Collection",
+			"Updating collection...",
 			"Please wait",
 		)
 	}
 
 	content := v.form.View()
-	instructions := "tab/↑↓: navigate • enter: create • esc: cancel"
+	instructions := "tab/↑↓: navigate • enter: update • esc: cancel"
 	
 	return v.layout.FullView(
-		"Add Collection",
+		"Edit Collection",
 		content,
 		instructions,
 	)
-}
-
-// Messages for collection operations
-type CollectionCreatedMsg struct {
-	collection collections.CollectionEntity
-}
-
-type CollectionCreateErrorMsg struct {
-	err error
-}
-
-type CollectionUpdatedMsg struct {
-	collection collections.CollectionEntity
-}
-
-type CollectionUpdateErrorMsg struct {
-	err error
-}
-
-type CollectionDeletedMsg struct {
-	ID int64
-}
-
-type CollectionDeleteErrorMsg struct {
-	Err error
-}
-
-type BackToCollectionsMsg struct{}
-
-type EditCollectionMsg struct {
-	Collection collections.CollectionEntity
 }

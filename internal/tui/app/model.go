@@ -1,7 +1,10 @@
 package app
 
 import (
+	"context"
+
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/maniac-en/req/internal/log"
 	"github.com/maniac-en/req/internal/tui/views"
 )
 
@@ -14,12 +17,13 @@ const (
 )
 
 type Model struct {
-	ctx             *Context
-	mode            ViewMode
-	collectionsView views.CollectionsView
-	addCollectionView views.AddCollectionView
-	width           int
-	height          int
+	ctx                *Context
+	mode               ViewMode
+	collectionsView    views.CollectionsView
+	addCollectionView  views.AddCollectionView
+	editCollectionView views.EditCollectionView
+	width              int
+	height             int
 }
 
 func NewModel(ctx *Context) Model {
@@ -28,6 +32,7 @@ func NewModel(ctx *Context) Model {
 		mode:              CollectionsViewMode,
 		collectionsView:   views.NewCollectionsView(ctx.Collections),
 		addCollectionView: views.NewAddCollectionView(ctx.Collections),
+		// editCollectionView will be created on demand
 	}
 }
 
@@ -42,7 +47,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		// Handle global keybinds only when not in filtering mode
 		isFiltering := m.mode == CollectionsViewMode && m.collectionsView.IsFiltering()
-		
+
 		if !isFiltering {
 			switch msg.String() {
 			case "ctrl+c", "q":
@@ -57,6 +62,30 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.mode = AddCollectionViewMode
 					return m, nil
 				}
+			case "e":
+				if m.mode == CollectionsViewMode {
+					// Get selected collection and switch to edit mode
+					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
+						m.mode = EditCollectionViewMode
+						m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, *selectedItem)
+						return m, nil
+					} else {
+						log.Error("issue getting currently selected collection")
+					}
+				}
+			case "x":
+				if m.mode == CollectionsViewMode {
+					// Delete selected collection
+					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
+						return m, func() tea.Msg {
+							err := m.ctx.Collections.Delete(context.Background(), selectedItem.ID)
+							if err != nil {
+								return views.CollectionDeleteErrorMsg{Err: err}
+							}
+							return views.CollectionDeletedMsg{ID: selectedItem.ID}
+						}
+					}
+				}
 			}
 		}
 	case tea.WindowSizeMsg:
@@ -66,6 +95,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.mode = CollectionsViewMode
 		// Reload collections to show any changes
 		return m, m.collectionsView.Init()
+	case views.EditCollectionMsg:
+		m.mode = EditCollectionViewMode
+		m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, msg.Collection)
+		return m, nil
+	case views.CollectionDeletedMsg:
+		// Collection deleted, reload collections view
+		return m, m.collectionsView.Init()
+	case views.CollectionDeleteErrorMsg:
+		// Delete failed, just continue
+		return m, nil
 	}
 
 	// Forward messages to the appropriate view
@@ -74,8 +113,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.collectionsView, cmd = m.collectionsView.Update(msg)
 	case AddCollectionViewMode:
 		m.addCollectionView, cmd = m.addCollectionView.Update(msg)
+	case EditCollectionViewMode:
+		m.editCollectionView, cmd = m.editCollectionView.Update(msg)
 	}
-	
+
 	return m, cmd
 }
 
@@ -85,8 +126,9 @@ func (m Model) View() string {
 		return m.collectionsView.View()
 	case AddCollectionViewMode:
 		return m.addCollectionView.View()
+	case EditCollectionViewMode:
+		return m.editCollectionView.View()
 	default:
 		return m.collectionsView.View()
 	}
 }
-
