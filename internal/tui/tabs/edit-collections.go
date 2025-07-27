@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type EditCollectionTab struct {

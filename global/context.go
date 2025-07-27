@@ -1,10 +1,10 @@
 package global
 
 import (
-	"github.com/maniac-en/req/internal/collections"
-	"github.com/maniac-en/req/internal/endpoints"
-	"github.com/maniac-en/req/internal/history"
-	"github.com/maniac-en/req/internal/http"
+	"github.com/maniac-en/req/internal/backend/collections"
+	"github.com/maniac-en/req/internal/backend/endpoints"
+	"github.com/maniac-en/req/internal/backend/history"
+	"github.com/maniac-en/req/internal/backend/http"
 )
 
 type AppContext struct {

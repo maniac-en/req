@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type AddCollectionTab struct {
@@ -57,7 +57,6 @@ func (a *AddCollectionTab) OnBlur() tea.Cmd {
 }
 
 func (a *AddCollectionTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
-
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {

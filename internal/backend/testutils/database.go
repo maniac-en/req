@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/backend/database"
 	_ "github.com/mattn/go-sqlite3"
 )
 

@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/maniac-en/req/internal/crud"
-	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/backend/crud"
+	"github.com/maniac-en/req/internal/backend/database"
 	"github.com/maniac-en/req/internal/log"
 )
 

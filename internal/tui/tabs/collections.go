@@ -8,7 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type collectionsOpts struct {
@@ -53,7 +53,7 @@ func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
 	if err != nil {
 	}
 	options := []OptionPair{}
-	for i, _ := range paginatedCollections.Collections {
+	for i := range paginatedCollections.Collections {
 		options = append(options, OptionPair{
 			Label: paginatedCollections.Collections[i].GetName(),
 			Value: strconv.FormatInt(paginatedCollections.Collections[i].GetID(), 10),
@@ -154,7 +154,6 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 }
 
 func (c *CollectionsTab) View() string {
-
 	if c.selectUI.IsLoading() {
 		return c.selectUI.View()
 	}
@@ -170,7 +169,6 @@ func (c *CollectionsTab) View() string {
 	}
 
 	return style.Render(selectContent)
-
 }
 
 func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {

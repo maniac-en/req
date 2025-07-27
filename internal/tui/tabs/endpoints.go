@@ -8,8 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/endpoints"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/backend/endpoints"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type EndpointsTab struct {
@@ -109,7 +109,6 @@ func (e *EndpointsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 }
 
 func (e *EndpointsTab) View() string {
-
 	if e.selectUI.IsLoading() {
 		return e.selectUI.View()
 	}

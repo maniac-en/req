@@ -8,8 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/endpoints"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/backend/endpoints"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type EditEndpointTab struct {
@@ -55,12 +55,15 @@ func NewEditEndpointTab(globalState *global.State) *EditEndpointTab {
 func (e *EditEndpointTab) Name() string {
 	return e.name
 }
+
 func (e *EditEndpointTab) Instructions() string {
 	return "None"
 }
+
 func (e *EditEndpointTab) Init() tea.Cmd {
 	return textinput.Blink
 }
+
 func (e *EditEndpointTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -84,6 +87,7 @@ func (e *EditEndpointTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	e.inputs[e.focusedInput], _ = e.inputs[e.focusedInput].Update(msg)
 	return e, nil
 }
+
 func (e *EditEndpointTab) View() string {
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
@@ -111,11 +115,13 @@ func (e *EditEndpointTab) View() string {
 
 	return containerStyle.Render(form)
 }
+
 func (e *EditEndpointTab) OnFocus() tea.Cmd {
 	e.inputs[0].Focus()
 	e.focused = true
 	return textinput.Blink
 }
+
 func (e *EditEndpointTab) OnBlur() tea.Cmd {
 	e.inputs[e.focusedInput].Blur()
 	e.focused = false

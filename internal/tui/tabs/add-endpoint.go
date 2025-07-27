@@ -8,8 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/endpoints"
-	"github.com/maniac-en/req/internal/messages"
+	"github.com/maniac-en/req/internal/backend/endpoints"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type AddEndpointTab struct {
@@ -53,12 +53,15 @@ func NewAddEndpointTab(globalState *global.State) *AddEndpointTab {
 func (a *AddEndpointTab) Name() string {
 	return a.name
 }
+
 func (a *AddEndpointTab) Instructions() string {
 	return "none"
 }
+
 func (a *AddEndpointTab) Init() tea.Cmd {
 	return textinput.Blink
 }
+
 func (a *AddEndpointTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -82,6 +85,7 @@ func (a *AddEndpointTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	a.inputs[a.focusedInput], _ = a.inputs[a.focusedInput].Update(msg)
 	return a, nil
 }
+
 func (a *AddEndpointTab) View() string {
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).

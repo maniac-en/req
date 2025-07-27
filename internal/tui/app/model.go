@@ -4,8 +4,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/messages"
-	"github.com/maniac-en/req/internal/tabs"
+	"github.com/maniac-en/req/internal/tui/messages"
+	"github.com/maniac-en/req/internal/tui/tabs"
 )
 
 type Model struct {
@@ -19,7 +19,6 @@ type Model struct {
 }
 
 func InitialModel() Model {
-
 	globalState := global.NewGlobalState()
 
 	return Model{
@@ -33,7 +32,6 @@ func InitialModel() Model {
 			tabs.NewEditEndpointTab(globalState),
 		},
 	}
-
 }
 
 func (m Model) Init() tea.Cmd {
