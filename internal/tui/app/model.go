@@ -24,6 +24,7 @@ type Model struct {
 	editCollectionView views.EditCollectionView
 	width              int
 	height             int
+	selectedIndex      int
 }
 
 func NewModel(ctx *Context) Model {
@@ -66,6 +67,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.mode == CollectionsViewMode {
 					// Get selected collection and switch to edit mode
 					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
+						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = EditCollectionViewMode
 						m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, *selectedItem)
 						return m, nil
@@ -94,6 +96,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case views.BackToCollectionsMsg:
 		m.mode = CollectionsViewMode
 		// Reload collections to show any changes
+		m.collectionsView.SetSelectedIndex(m.selectedIndex)
 		return m, m.collectionsView.Init()
 	case views.EditCollectionMsg:
 		m.mode = EditCollectionViewMode

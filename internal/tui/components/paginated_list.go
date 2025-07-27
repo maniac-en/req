@@ -81,6 +81,10 @@ func (pl PaginatedList) SelectedIndex() int {
 	return pl.list.Index()
 }
 
+func (pl *PaginatedList) SetIndex(i int) {
+	pl.list.Select(i)
+}
+
 func (pl PaginatedList) IsFiltering() bool {
 	return pl.list.FilterState() == list.Filtering
 }

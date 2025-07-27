@@ -17,6 +17,7 @@ type CollectionsView struct {
 	width              int
 	height             int
 	initialized        bool
+	selectedIndex      int
 
 	// Backend pagination state
 	currentPage int
@@ -36,7 +37,22 @@ func (v CollectionsView) Init() tea.Cmd {
 }
 
 func (v *CollectionsView) loadCollections() tea.Msg {
-	return v.loadCollectionsPage(1, 20) // Load first page with 20 items
+	pageToLoad := v.currentPage
+	if pageToLoad == 0 {
+		pageToLoad = 1
+	}
+	pageSizeToLoad := v.pageSize
+	if pageSizeToLoad == 0 {
+		pageSizeToLoad = 20
+	}
+
+	if v.initialized {
+		v.selectedIndex = v.list.SelectedIndex()
+	} else {
+		v.selectedIndex = 0
+	}
+
+	return v.loadCollectionsPage(pageToLoad, pageSizeToLoad)
 }
 
 func (v *CollectionsView) loadCollectionsPage(page, pageSize int) tea.Msg {
@@ -93,6 +109,7 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		// Create list with pagination info in title
 		title := fmt.Sprintf("Collections (Page %d/%d)", v.currentPage, v.pagination.TotalPages)
 		v.list = components.NewPaginatedList(items, title)
+		v.list.SetIndex(v.selectedIndex)
 
 		if v.width > 0 && v.height > 0 {
 			contentHeight := v.height - 4
@@ -115,6 +132,7 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			case "n", "right":
 				// Next page
 				if v.currentPage < v.pagination.TotalPages {
+					v.selectedIndex = 0 // Reset selection on page change
 					return v, func() tea.Msg {
 						return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
 					}
@@ -123,6 +141,7 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 			case "p", "left":
 				// Previous page
 				if v.currentPage > 1 {
+					v.selectedIndex = 0 // Reset selection on page change
 					return v, func() tea.Msg {
 						return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
 					}
@@ -147,6 +166,13 @@ func (v CollectionsView) IsFiltering() bool {
 	return v.initialized && v.list.IsFiltering()
 }
 
+func (v *CollectionsView) SetSelectedIndex(index int) {
+	v.selectedIndex = index
+	if v.initialized {
+		v.list.SetIndex(index)
+	}
+}
+
 func (v CollectionsView) GetSelectedItem() *collections.CollectionEntity {
 	if !v.initialized {
 		return nil
@@ -158,6 +184,10 @@ func (v CollectionsView) GetSelectedItem() *collections.CollectionEntity {
 		}
 	}
 	return nil
+}
+
+func (v CollectionsView) GetSelectedIndex() int {
+	return v.list.SelectedIndex()
 }
 
 func (v CollectionsView) View() string {
