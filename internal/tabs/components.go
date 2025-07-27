@@ -83,6 +83,7 @@ func NewSelectInput() SelectInput {
 		spinner: s,
 	}
 }
+
 func (s SelectInput) Init() tea.Cmd {
 	return s.spinner.Tick
 }
