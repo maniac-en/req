@@ -60,11 +60,6 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 			return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		}
 		
-	case CollectionCreatedMsg:
-		// Collection was created successfully
-		v.form.Clear()
-		return v, func() tea.Msg { return BackToCollectionsMsg{} }
-		
 	case CollectionCreateErrorMsg:
 		// Handle error - for now just stop submitting
 		v.submitting = false
@@ -92,6 +87,10 @@ func (v *AddCollectionView) createCollection(name string) tea.Msg {
 		return CollectionCreateErrorMsg{err: err}
 	}
 	return CollectionCreatedMsg{collection: collection}
+}
+
+func (v *AddCollectionView) ClearForm() {
+	v.form.Clear()
 }
 
 func (v AddCollectionView) View() string {

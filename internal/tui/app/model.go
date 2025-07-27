@@ -60,6 +60,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case "a":
 				if m.mode == CollectionsViewMode {
+					m.selectedIndex = m.collectionsView.GetSelectedIndex()
 					m.mode = AddCollectionViewMode
 					return m, nil
 				}
@@ -108,6 +109,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case views.CollectionDeleteErrorMsg:
 		// Delete failed, just continue
 		return m, nil
+	case views.CollectionCreatedMsg:
+		// Collection created successfully, clear form and go to first page with first item selected
+		m.addCollectionView.ClearForm()
+		m.mode = CollectionsViewMode
+		m.selectedIndex = 0 // Reset to first item
+		m.collectionsView.SetSelectedIndex(m.selectedIndex)
+		return m, m.collectionsView.Init()
 	}
 
 	// Forward messages to the appropriate view
