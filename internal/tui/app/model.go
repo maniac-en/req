@@ -14,17 +14,19 @@ const (
 	CollectionsViewMode ViewMode = iota
 	AddCollectionViewMode
 	EditCollectionViewMode
+	SelectedCollectionViewMode
 )
 
 type Model struct {
-	ctx                *Context
-	mode               ViewMode
-	collectionsView    views.CollectionsView
-	addCollectionView  views.AddCollectionView
-	editCollectionView views.EditCollectionView
-	width              int
-	height             int
-	selectedIndex      int
+	ctx                    *Context
+	mode                   ViewMode
+	collectionsView        views.CollectionsView
+	addCollectionView      views.AddCollectionView
+	editCollectionView     views.EditCollectionView
+	selectedCollectionView views.SelectedCollectionView
+	width                  int
+	height                 int
+	selectedIndex          int
 }
 
 func NewModel(ctx *Context) Model {
@@ -60,6 +62,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.selectedIndex = m.collectionsView.GetSelectedIndex()
 					m.mode = AddCollectionViewMode
 					return m, nil
+				}
+			case "enter":
+				if m.mode == CollectionsViewMode {
+					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
+						m.selectedIndex = m.collectionsView.GetSelectedIndex()
+						m.mode = SelectedCollectionViewMode
+						m.selectedCollectionView = views.NewSelectedCollectionView(m.ctx.Endpoints, *selectedItem)
+						return m, nil
+					} else {
+						log.Error("issue getting currently selected collection")
+					}
 				}
 			case "e":
 				if m.mode == CollectionsViewMode {
@@ -116,6 +129,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.addCollectionView, cmd = m.addCollectionView.Update(msg)
 	case EditCollectionViewMode:
 		m.editCollectionView, cmd = m.editCollectionView.Update(msg)
+	case SelectedCollectionViewMode:
+		m.selectedCollectionView, cmd = m.selectedCollectionView.Update(msg)
 	}
 
 	return m, cmd
@@ -129,6 +144,8 @@ func (m Model) View() string {
 		return m.addCollectionView.View()
 	case EditCollectionViewMode:
 		return m.editCollectionView.View()
+	case SelectedCollectionViewMode:
+		return m.selectedCollectionView.View()
 	default:
 		return m.collectionsView.View()
 	}
