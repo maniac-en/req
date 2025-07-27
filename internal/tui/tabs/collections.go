@@ -5,15 +5,18 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/paginator"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
+	"github.com/maniac-en/req/internal/log"
 	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type collectionsOpts struct {
 	options    []OptionPair
 	totalItems int
+	totalPages int
 }
 
 type OptionPair struct {
@@ -29,6 +32,7 @@ type CollectionsTab struct {
 	itemsPerPage     int
 	totalCollections int
 	globalState      *global.State
+	paginator        paginator.Model
 }
 
 func NewCollectionsTab(state *global.State) *CollectionsTab {
@@ -40,6 +44,7 @@ func NewCollectionsTab(state *global.State) *CollectionsTab {
 		currentPage:  0,
 		itemsPerPage: itemsPerPage,
 		globalState:  state,
+		paginator:    paginator.New(),
 	}
 }
 
@@ -51,6 +56,7 @@ func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
 	ctx := global.GetAppContext()
 	paginatedCollections, err := ctx.Collections.ListPaginated(context.Background(), limit, offset)
 	if err != nil {
+		log.Error("couldn't fetch collections", "err", err)
 	}
 	options := []OptionPair{}
 	for i := range paginatedCollections.Collections {
@@ -64,7 +70,8 @@ func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
 	return func() tea.Msg {
 		return collectionsOpts{
 			options:    GlobalCollections,
-			totalItems: c.totalCollections,
+			totalItems: int(paginatedCollections.Total),
+			totalPages: paginatedCollections.TotalPages,
 		}
 	}
 }
@@ -79,6 +86,11 @@ func (c *CollectionsTab) Instructions() string {
 
 func (c *CollectionsTab) Init() tea.Cmd {
 	c.selectUI.Focus()
+	c.paginator.Type = paginator.Dots
+	c.paginator.PerPage = c.itemsPerPage
+	c.paginator.ActiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("o")
+	c.paginator.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("o")
+
 	return tea.Batch(
 		c.selectUI.Init(),
 		c.fetchOptions(c.itemsPerPage, 0),
@@ -103,6 +115,7 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 	case collectionsOpts:
 		c.selectUI.SetOptions(msg.options)
 		c.loaded = true
+		c.paginator.SetTotalPages(msg.totalItems)
 
 	case tea.KeyMsg:
 		// Check if list is filtering otherwise the keybinds wouldn't let us type
@@ -128,6 +141,7 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if c.currentPage > 0 {
 				c.currentPage--
 				newOffset := c.currentPage * c.itemsPerPage
+				c.paginator.PrevPage()
 				return c, c.fetchOptions(c.itemsPerPage, newOffset)
 			}
 		case "l":
@@ -135,6 +149,7 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if c.currentPage < totalPages-1 {
 				c.currentPage++
 				newOffset := c.currentPage * c.itemsPerPage
+				c.paginator.NextPage()
 				return c, c.fetchOptions(c.itemsPerPage, newOffset)
 			}
 		case "enter":
@@ -159,16 +174,21 @@ func (c *CollectionsTab) View() string {
 	}
 
 	selectContent := c.selectUI.View()
+	selectContentStyle := lipgloss.NewStyle().PaddingRight(4)
+	contentWidth := lipgloss.Width(selectContent)
+	paginatorView := c.paginator.View()
+	centeredPaginatorStyle := lipgloss.NewStyle().
+		Width(contentWidth).
+		Align(lipgloss.Center)
 
-	style := lipgloss.NewStyle().
-		PaddingRight(4)
-
+	var finalView string
 	if !c.selectUI.IsLoading() && len(c.selectUI.list.Items()) > 0 {
 		title := "\n\n\n\n\n\n\nSelect Collection:\n\n"
-		return title + style.Render(selectContent)
+		finalView = title + selectContentStyle.Render(selectContent) + "\n" + centeredPaginatorStyle.Render(paginatorView)
+		return finalView
 	}
-
-	return style.Render(selectContent)
+	finalView = selectContentStyle.Render(selectContent)
+	return finalView
 }
 
 func (c *CollectionsTab) deleteCollection(value string) tea.Cmd {
