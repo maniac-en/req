@@ -2,62 +2,18 @@ package endpoints
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/maniac-en/req/internal/crud"
-	"github.com/maniac-en/req/internal/database"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/maniac-en/req/internal/testutils"
 )
 
-func setupTestDB(t *testing.T) *database.Queries {
-	db, err := sql.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatalf("Failed to open test database: %v", err)
-	}
-
-	schema := `
-	CREATE TABLE collections (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-	);
-
-	CREATE TABLE endpoints (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		collection_id INTEGER NOT NULL,
-		name TEXT NOT NULL,
-		method TEXT NOT NULL,
-		url TEXT NOT NULL,
-		headers TEXT DEFAULT '{}' NOT NULL,
-		query_params TEXT DEFAULT '{}' NOT NULL,
-		request_body TEXT DEFAULT '' NOT NULL,
-		created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-		FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
-	);`
-
-	if _, err := db.Exec(schema); err != nil {
-		t.Fatalf("Failed to create test schema: %v", err)
-	}
-
-	return database.New(db)
-}
-
-func createTestCollection(t *testing.T, db *database.Queries) int64 {
-	collection, err := db.CreateCollection(context.Background(), "Test Collection")
-	if err != nil {
-		t.Fatalf("Failed to create test collection: %v", err)
-	}
-	return collection.ID
-}
 
 func TestEndpointsManagerCRUD(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
 	ctx := context.Background()
-	collectionID := createTestCollection(t, db)
+	collectionID := testutils.CreateTestCollection(t, db, "Test Collection")
 
 	t.Run("Create returns error", func(t *testing.T) {
 		_, err := manager.Create(ctx, "Test Endpoint")
@@ -137,10 +93,10 @@ func TestEndpointsManagerCRUD(t *testing.T) {
 }
 
 func TestCreateEndpoint(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
 	ctx := context.Background()
-	collectionID := createTestCollection(t, db)
+	collectionID := testutils.CreateTestCollection(t, db, "Test Collection")
 
 	t.Run("Valid endpoint creation", func(t *testing.T) {
 		data := EndpointData{
@@ -230,10 +186,10 @@ func TestCreateEndpoint(t *testing.T) {
 }
 
 func TestUpdateEndpoint(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
 	ctx := context.Background()
-	collectionID := createTestCollection(t, db)
+	collectionID := testutils.CreateTestCollection(t, db, "Test Collection")
 
 	t.Run("Valid endpoint update", func(t *testing.T) {
 		// Create endpoint first
@@ -305,10 +261,10 @@ func TestUpdateEndpoint(t *testing.T) {
 }
 
 func TestListByCollection(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
 	ctx := context.Background()
-	collectionID := createTestCollection(t, db)
+	collectionID := testutils.CreateTestCollection(t, db, "Test Collection")
 
 	// Create test endpoints
 	endpoints := []EndpointData{
@@ -400,7 +356,7 @@ func TestListByCollection(t *testing.T) {
 	})
 
 	t.Run("Empty collection", func(t *testing.T) {
-		emptyCollectionID := createTestCollection(t, db)
+		emptyCollectionID := testutils.CreateTestCollection(t, db, "Empty Collection")
 		result, err := manager.ListByCollection(ctx, emptyCollectionID, 10, 0)
 		if err != nil {
 			t.Fatalf("ListByCollection failed: %v", err)
@@ -422,7 +378,7 @@ func TestListByCollection(t *testing.T) {
 }
 
 func TestEndpointsManagerValidation(t *testing.T) {
-	db := setupTestDB(t)
+	db := testutils.SetupTestDB(t, "collections", "endpoints")
 	manager := NewEndpointsManager(db)
 	ctx := context.Background()
 
