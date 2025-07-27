@@ -4,6 +4,7 @@ package history
 import (
 	"time"
 
+	"github.com/maniac-en/req/internal/crud"
 	"github.com/maniac-en/req/internal/database"
 	"github.com/maniac-en/req/internal/log"
 )
@@ -39,14 +40,8 @@ func (h HistoryEntity) GetUpdatedAt() time.Time {
 }
 
 type PaginatedHistory struct {
-	Items       []HistoryEntity
-	Total       int64
-	HasNext     bool
-	HasPrev     bool
-	Limit       int
-	Offset      int
-	TotalPages  int
-	CurrentPage int
+	Items []HistoryEntity `json:"items"`
+	crud.PaginationMetadata
 }
 
 type ExecutionData struct {

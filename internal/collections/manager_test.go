@@ -100,12 +100,12 @@ func TestCollectionsManagerCRUD(t *testing.T) {
 		for i := 1; i <= 5; i++ {
 			manager.Create(ctx, fmt.Sprintf("Pagination Test %d", i))
 		}
-		
+
 		paginated, err := manager.ListPaginated(ctx, 2, 0)
 		if err != nil {
 			t.Fatalf("ListPaginated failed: %v", err)
 		}
-		
+
 		if len(paginated.Collections) != 2 {
 			t.Errorf("Expected 2 collections, got %d", len(paginated.Collections))
 		}
@@ -118,7 +118,7 @@ func TestCollectionsManagerCRUD(t *testing.T) {
 		if paginated.HasPrev {
 			t.Error("Expected HasPrev to be false for offset 0")
 		}
-		
+
 		// Test second page
 		paginated2, err := manager.ListPaginated(ctx, 2, 2)
 		if err != nil {

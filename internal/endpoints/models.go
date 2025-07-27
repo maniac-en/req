@@ -1,4 +1,4 @@
-package collections
+package endpoints
 
 import (
 	"time"
@@ -8,19 +8,19 @@ import (
 	"github.com/maniac-en/req/internal/log"
 )
 
-type CollectionEntity struct {
-	database.Collection
+type EndpointEntity struct {
+	database.Endpoint
 }
 
-func (c CollectionEntity) GetID() int64 {
+func (c EndpointEntity) GetID() int64 {
 	return c.ID
 }
 
-func (c CollectionEntity) GetName() string {
+func (c EndpointEntity) GetName() string {
 	return c.Name
 }
 
-func (c CollectionEntity) GetCreatedAt() time.Time {
+func (c EndpointEntity) GetCreatedAt() time.Time {
 	parsed, err := time.Parse(time.RFC3339, c.CreatedAt)
 	if err != nil {
 		log.Debug("failed to parse created_at timestamp", "timestamp", c.CreatedAt, "error", err)
@@ -29,7 +29,7 @@ func (c CollectionEntity) GetCreatedAt() time.Time {
 	return parsed
 }
 
-func (c CollectionEntity) GetUpdatedAt() time.Time {
+func (c EndpointEntity) GetUpdatedAt() time.Time {
 	parsed, err := time.Parse(time.RFC3339, c.UpdatedAt)
 	if err != nil {
 		log.Debug("failed to parse updated_at timestamp", "timestamp", c.UpdatedAt, "error", err)
@@ -38,11 +38,21 @@ func (c CollectionEntity) GetUpdatedAt() time.Time {
 	return parsed
 }
 
-type CollectionsManager struct {
+type EndpointsManager struct {
 	DB *database.Queries
 }
 
-type PaginatedCollections struct {
-	Collections []CollectionEntity `json:"collections"`
+type PaginatedEndpoints struct {
+	Endpoints []EndpointEntity `json:"endpoints"`
 	crud.PaginationMetadata
+}
+
+type EndpointData struct {
+	CollectionID int64
+	Name         string
+	Method       string
+	URL          string
+	Headers      string
+	QueryParams  map[string]string
+	RequestBody  string
 }

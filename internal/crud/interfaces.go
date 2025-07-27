@@ -26,3 +26,30 @@ type Manager[T Entity] interface {
 	Delete(ctx context.Context, id int64) error
 	List(ctx context.Context) ([]T, error)
 }
+
+type PaginationMetadata struct {
+	Total       int64 `json:"total"`
+	HasNext     bool  `json:"has_next"`
+	HasPrev     bool  `json:"has_prev"`
+	Limit       int   `json:"limit"`
+	Offset      int   `json:"offset"`
+	TotalPages  int   `json:"total_pages"`
+	CurrentPage int   `json:"current_page"`
+}
+
+func CalculatePagination(total int64, limit, offset int) PaginationMetadata {
+	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
+	currentPage := (offset / limit) + 1
+	hasNext := (offset + limit) < int(total)
+	hasPrev := offset > 0
+
+	return PaginationMetadata{
+		Total:       total,
+		HasNext:     hasNext,
+		HasPrev:     hasPrev,
+		Limit:       limit,
+		Offset:      offset,
+		TotalPages:  totalPages,
+		CurrentPage: currentPage,
+	}
+}

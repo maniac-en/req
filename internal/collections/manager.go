@@ -104,7 +104,7 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 	return paginated.Collections, nil
 }
 
-func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int64) (*PaginatedCollections, error) {
+func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedCollections, error) {
 	log.Debug("listing paginated collections", "limit", limit, "offset", offset)
 
 	total, err := c.DB.CountCollections(ctx)
@@ -114,8 +114,8 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 	}
 
 	collections, err := c.DB.GetCollectionsPaginated(ctx, database.GetCollectionsPaginatedParams{
-		Limit:  limit,
-		Offset: offset,
+		Limit:  int64(limit),
+		Offset: int64(offset),
 	})
 	if err != nil {
 		log.Error("failed to get paginated collections", "limit", limit, "offset", offset, "error", err)
@@ -127,17 +127,12 @@ func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset in
 		entities[i] = CollectionEntity{Collection: collection}
 	}
 
-	hasNext := offset+int64(len(collections)) < total
-	hasPrev := offset > 0
+	pagination := crud.CalculatePagination(total, limit, offset)
 
-	log.Debug("retrieved paginated collections", "total", total, "returned", len(entities), "has_next", hasNext, "has_prev", hasPrev)
-
-	return &PaginatedCollections{
-		Collections: entities,
-		Total:       total,
-		Offset:      offset,
-		Limit:       limit,
-		HasNext:     hasNext,
-		HasPrev:     hasPrev,
-	}, nil
+	result := &PaginatedCollections{
+		Collections:        entities,
+		PaginationMetadata: pagination,
+	}
+	log.Info("retrieved collections", "count", len(entities), "total", pagination.Total, "page", pagination.CurrentPage, "total_pages", pagination.TotalPages)
+	return result, nil
 }

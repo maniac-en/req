@@ -15,6 +15,7 @@ import (
 	"github.com/maniac-en/req/internal/app"
 	"github.com/maniac-en/req/internal/collections"
 	"github.com/maniac-en/req/internal/database"
+	"github.com/maniac-en/req/internal/endpoints"
 	"github.com/maniac-en/req/internal/history"
 	"github.com/maniac-en/req/internal/http"
 	"github.com/maniac-en/req/internal/log"
@@ -38,9 +39,9 @@ var (
 type Config struct {
 	DB          *database.Queries
 	Collections *collections.CollectionsManager
+	Endpoints   *endpoints.EndpointsManager
 	HTTP        *http.HTTPManager
 	History     *history.HistoryManager
-	// TODO: Add Endpoints *endpoints.EndpointsManager when endpoints package is refactored
 }
 
 func initPaths() error {
@@ -134,18 +135,20 @@ func main() {
 	// create database client and managers
 	db := database.New(DB)
 	collectionsManager := collections.NewCollectionsManager(db)
+	endpointsManager := endpoints.NewEndpointsManager(db)
 	httpManager := http.NewHTTPManager()
 	historyManager := history.NewHistoryManager(db)
 
 	config := &Config{
 		DB:          db,
 		Collections: collectionsManager,
+		Endpoints:   endpointsManager,
 		HTTP:        httpManager,
 		History:     historyManager,
 	}
 
-	log.Info("application initialized", "components", []string{"database", "collections", "http", "history", "logging"})
-	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)
+	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging"})
+	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "endpoints", config.Endpoints != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)
 	log.Info("application started successfully")
 
 	// Entry point for UI

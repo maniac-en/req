@@ -9,6 +9,18 @@ import (
 	"context"
 )
 
+const countEndpointsByCollection = `-- name: CountEndpointsByCollection :one
+SELECT COUNT(*) FROM endpoints
+WHERE collection_id = ?
+`
+
+func (q *Queries) CountEndpointsByCollection(ctx context.Context, collectionID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countEndpointsByCollection, collectionID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createEndpoint = `-- name: CreateEndpoint :one
 INSERT INTO endpoints (
     collection_id,
@@ -93,14 +105,21 @@ func (q *Queries) GetEndpoint(ctx context.Context, id int64) (Endpoint, error) {
 	return i, err
 }
 
-const listEndpoints = `-- name: ListEndpoints :many
+const listEndpointsPaginated = `-- name: ListEndpointsPaginated :many
 SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
 WHERE collection_id = ?
 ORDER BY name
+LIMIT ? OFFSET ?
 `
 
-func (q *Queries) ListEndpoints(ctx context.Context, collectionID int64) ([]Endpoint, error) {
-	rows, err := q.db.QueryContext(ctx, listEndpoints, collectionID)
+type ListEndpointsPaginatedParams struct {
+	CollectionID int64 `db:"collection_id" json:"collection_id"`
+	Limit        int64 `db:"limit" json:"limit"`
+	Offset       int64 `db:"offset" json:"offset"`
+}
+
+func (q *Queries) ListEndpointsPaginated(ctx context.Context, arg ListEndpointsPaginatedParams) ([]Endpoint, error) {
+	rows, err := q.db.QueryContext(ctx, listEndpointsPaginated, arg.CollectionID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
