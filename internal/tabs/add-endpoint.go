@@ -67,6 +67,7 @@ func (a *AddEndpointTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if a.inputs[0].Value() != "" && a.inputs[1].Value() != "" && a.inputs[2].Value() != "" {
 				return a.addEndpoint(a.inputs[0].Value(), a.inputs[1].Value(), a.inputs[2].Value())
 			}
+			return a, nil
 		case "tab":
 			a.inputs[a.focusedInput].Blur()
 			a.focusedInput = (a.focusedInput + 1) % len(a.inputs)

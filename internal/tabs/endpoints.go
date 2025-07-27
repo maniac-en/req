@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/global"
+	"github.com/maniac-en/req/internal/endpoints"
 	"github.com/maniac-en/req/internal/messages"
 )
 
@@ -16,6 +17,7 @@ type EndpointsTab struct {
 	globalState *global.State
 	selectUI    SelectInput
 	loaded      bool
+	endpoints   []endpoints.EndpointEntity
 }
 
 type endpointListOpts struct {
@@ -53,6 +55,7 @@ func (e *EndpointsTab) fetchEndpoints(collectionId string, limit, offset int) te
 	}
 	opts := []OptionPair{}
 	endpoints, err := ctx.Endpoints.ListByCollection(context.Background(), collectionIdInt, limit, offset)
+	e.endpoints = endpoints.Endpoints
 	for _, endpoint := range endpoints.Endpoints {
 		opts = append(opts, OptionPair{
 			Label: endpoint.GetName(),
@@ -92,6 +95,10 @@ func (e *EndpointsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 		case "d":
 			if selected := e.selectUI.GetSelected(); selected != "" {
 				return e, e.deleteEndpoint(selected)
+			}
+		case "e":
+			if selected := e.selectUI.GetSelected(); selected != "" {
+				return e, e.editEndpoint(selected)
 			}
 		}
 	default:
@@ -143,4 +150,31 @@ func (e *EndpointsTab) deleteEndpoint(value string) tea.Cmd {
 		}
 	}
 	return e.fetchEndpoints(e.globalState.GetCurrentCollection(), 5, 0)
+}
+
+func (e *EndpointsTab) editEndpoint(value string) tea.Cmd {
+	var endpoint endpoints.EndpointEntity
+
+	for _, ep := range e.endpoints {
+		selectedEpID, err := strconv.ParseInt(value, 10, 64)
+		if err != nil {
+		}
+		if ep.GetID() == selectedEpID {
+			endpoint = ep
+		}
+	}
+
+	return tea.Batch(
+		func() tea.Msg {
+			return messages.EditEndpointMsg{
+				Name:   endpoint.GetName(),
+				Method: endpoint.Method,
+				URL:    endpoint.Url,
+				ID:     value,
+			}
+		},
+		func() tea.Msg {
+			return messages.SwitchTabMsg{TabIndex: 5}
+		},
+	)
 }

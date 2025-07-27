@@ -30,6 +30,7 @@ func InitialModel() Model {
 			tabs.NewEditCollectionTab(),
 			tabs.NewEndpointsTab(globalState),
 			tabs.NewAddEndpointTab(globalState),
+			tabs.NewEditEndpointTab(globalState),
 		},
 	}
 
@@ -53,6 +54,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.EditCollectionMsg:
 		if editTab, ok := m.tabs[2].(*tabs.EditCollectionTab); ok {
 			editTab.SetEditingCollection(msg.Label, msg.Value)
+		}
+		return m, nil
+	case messages.EditEndpointMsg:
+		if editTab, ok := m.tabs[5].(*tabs.EditEndpointTab); ok {
+			editTab.SetEditingEndpoint(msg)
 		}
 		return m, nil
 
