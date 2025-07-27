@@ -29,7 +29,7 @@ func InitialModel() Model {
 			tabs.NewAddCollectionTab(),
 			tabs.NewEditCollectionTab(),
 			tabs.NewEndpointsTab(globalState),
-			tabs.NewAddEndpointTab(),
+			tabs.NewAddEndpointTab(globalState),
 		},
 	}
 
