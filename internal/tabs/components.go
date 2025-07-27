@@ -14,16 +14,16 @@ import (
 // for now the focus is just on the collections tab
 // we'll see how we can change this around to accommodate
 // more tabs
-type collection struct {
+type item struct {
 	label string
 	value string
 }
 
 type renderMethod struct{}
 
-func (c collection) FilterValue() string { return c.label }
-func (c collection) Label() string       { return c.label }
-func (c collection) Value() string       { return c.value }
+func (i item) FilterValue() string { return i.label }
+func (i item) Label() string       { return i.label }
+func (i item) Value() string       { return i.value }
 
 func (r renderMethod) Height() int {
 	return 1
@@ -37,7 +37,7 @@ func (r renderMethod) Update(_ tea.Msg, _ *list.Model) tea.Cmd {
 	return nil
 }
 func (r renderMethod) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(collection)
+	i, ok := listItem.(item)
 	if !ok {
 		return
 	}
@@ -111,19 +111,14 @@ func (s SelectInput) View() string {
 	// Add this check for empty options
 	if len(s.list.Items()) == 0 {
 		const bodyText = "No options available\nCreate your first option to get started!"
-		const instruction = "\n\n\n\n\n\n\n+ - add a collection"
 		emptyStyle := lipgloss.NewStyle().
 			Foreground(lipgloss.Color("240")).
 			Italic(true).
 			Align(lipgloss.Center).
 			PaddingTop(5).
 			Render(bodyText)
-		normalStyle := lipgloss.NewStyle().
-			Italic(true).
-			Align(lipgloss.Center).
-			Render(instruction)
 
-		return lipgloss.JoinVertical(lipgloss.Center, emptyStyle, normalStyle)
+		return emptyStyle
 	}
 
 	return s.list.View()
@@ -135,11 +130,11 @@ func (s *SelectInput) Blur()          { s.focused = false }
 func (s SelectInput) IsLoading() bool { return s.loading }
 
 func (s *SelectInput) SetOptions(options []OptionPair) {
-	collections := make([]list.Item, len(options))
+	items := make([]list.Item, len(options))
 	for i, option := range options {
-		collections[i] = collection{label: option.Label, value: option.Value}
+		items[i] = item{label: option.Label, value: option.Value}
 	}
-	s.list.SetItems(collections)
+	s.list.SetItems(items)
 	s.loading = false
 }
 
@@ -148,7 +143,7 @@ func (s SelectInput) GetSelected() string {
 		return ""
 	}
 	if selectedItem := s.list.SelectedItem(); selectedItem != nil {
-		return selectedItem.(collection).Value()
+		return selectedItem.(item).Value()
 	}
 	return ""
 }

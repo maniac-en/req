@@ -3,7 +3,6 @@ package tabs
 import (
 	"context"
 	"strconv"
-	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -29,9 +28,10 @@ type CollectionsTab struct {
 	currentPage      int
 	itemsPerPage     int
 	totalCollections int
+	globalState      *global.State
 }
 
-func NewCollectionsTab() *CollectionsTab {
+func NewCollectionsTab(state *global.State) *CollectionsTab {
 	itemsPerPage := 5
 	return &CollectionsTab{
 		name:         "Collections",
@@ -39,6 +39,7 @@ func NewCollectionsTab() *CollectionsTab {
 		loaded:       false,
 		currentPage:  0,
 		itemsPerPage: itemsPerPage,
+		globalState:  state,
 	}
 }
 
@@ -60,12 +61,12 @@ func (c *CollectionsTab) fetchOptions(limit, offset int) tea.Cmd {
 	}
 	GlobalCollections = options
 	c.totalCollections = int(paginatedCollections.Total)
-	return tea.Tick(0, func(time.Time) tea.Msg {
+	return func() tea.Msg {
 		return collectionsOpts{
 			options:    GlobalCollections,
 			totalItems: c.totalCollections,
 		}
-	})
+	}
 }
 
 func (c *CollectionsTab) Name() string {
@@ -119,7 +120,7 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			if selected := c.selectUI.GetSelected(); selected != "" {
 				return c, c.deleteCollection(selected)
 			}
-		case "e": // Add edit key handling
+		case "e":
 			if selected := c.selectUI.GetSelected(); selected != "" {
 				return c, c.editCollection(selected)
 			}
@@ -135,6 +136,11 @@ func (c *CollectionsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 				c.currentPage++
 				newOffset := c.currentPage * c.itemsPerPage
 				return c, c.fetchOptions(c.itemsPerPage, newOffset)
+			}
+		case "enter":
+			c.globalState.SetCurrentCollection(c.selectUI.GetSelected())
+			return c, func() tea.Msg {
+				return messages.SwitchTabMsg{TabIndex: 3}
 			}
 		default:
 			c.selectUI, cmd = c.selectUI.Update(msg)

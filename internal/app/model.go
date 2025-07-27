@@ -3,6 +3,7 @@ package app
 import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/global"
 	"github.com/maniac-en/req/internal/messages"
 	"github.com/maniac-en/req/internal/tabs"
 )
@@ -12,19 +13,27 @@ type Model struct {
 	activeTab int
 	width     int
 	height    int
+
+	// Global state for sharing data
+	state *global.State
 }
 
 func InitialModel() Model {
-	tabList := []tabs.Tab{
-		tabs.NewCollectionsTab(),
-		tabs.NewAddCollectionTab(),
-		tabs.NewEditCollectionTab(),
-	}
+
+	globalState := global.NewGlobalState()
 
 	return Model{
-		tabs:      tabList,
-		activeTab: 0,
+		state: globalState,
+		tabs: []tabs.Tab{
+			tabs.NewCollectionsTab(globalState),
+			tabs.NewAddCollectionTab(),
+			tabs.NewEditCollectionTab(),
+			tabs.NewEndpointsTab(globalState),
+			tabs.NewAddEndpointTab(globalState),
+			tabs.NewEditEndpointTab(globalState),
+		},
 	}
+
 }
 
 func (m Model) Init() tea.Cmd {
@@ -45,6 +54,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.EditCollectionMsg:
 		if editTab, ok := m.tabs[2].(*tabs.EditCollectionTab); ok {
 			editTab.SetEditingCollection(msg.Label, msg.Value)
+		}
+		return m, nil
+	case messages.EditEndpointMsg:
+		if editTab, ok := m.tabs[5].(*tabs.EditEndpointTab); ok {
+			editTab.SetEditingEndpoint(msg)
 		}
 		return m, nil
 
