@@ -40,7 +40,7 @@ func (e *EndpointsTab) Name() string {
 }
 
 func (e *EndpointsTab) Instructions() string {
-	return "c - collections page"
+	return "c - collections page • + - add endpoint • d - delete endpoint"
 }
 
 func (e *EndpointsTab) fetchEndpoints(collectionId string, limit, offset int) tea.Cmd {
@@ -89,6 +89,10 @@ func (e *EndpointsTab) Update(msg tea.Msg) (Tab, tea.Cmd) {
 			return e, func() tea.Msg {
 				return messages.SwitchTabMsg{TabIndex: 4}
 			}
+		case "d":
+			if selected := e.selectUI.GetSelected(); selected != "" {
+				return e, e.deleteEndpoint(selected)
+			}
 		}
 	default:
 		e.selectUI, cmd = e.selectUI.Update(msg)
@@ -123,4 +127,20 @@ func (e *EndpointsTab) OnFocus() tea.Cmd {
 func (e *EndpointsTab) OnBlur() tea.Cmd {
 	e.selectUI.Blur()
 	return nil
+}
+
+func (e *EndpointsTab) deleteEndpoint(value string) tea.Cmd {
+	ctx := global.GetAppContext()
+	id, _ := strconv.ParseInt(value, 10, 64)
+	err := ctx.Endpoints.Delete(context.Background(), id)
+	if err != nil {
+		return e.fetchEndpoints(e.globalState.GetCurrentCollection(), 5, 0)
+	}
+	for i, collection := range GlobalCollections {
+		if collection.Value == value {
+			GlobalCollections = append(GlobalCollections[:i], GlobalCollections[i+1:]...)
+			break
+		}
+	}
+	return e.fetchEndpoints(e.globalState.GetCurrentCollection(), 5, 0)
 }
