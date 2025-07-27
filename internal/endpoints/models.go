@@ -51,3 +51,13 @@ type PaginatedEndpoints struct {
 	TotalPages  int              `json:"total_pages"`
 	CurrentPage int              `json:"current_page"`
 }
+
+type EndpointData struct {
+	CollectionID int64
+	Name         string
+	Method       string
+	URL          string
+	Headers      string
+	QueryParams  map[string]string
+	RequestBody  string
+}

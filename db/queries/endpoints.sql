@@ -16,10 +16,15 @@ RETURNING *;
 SELECT * FROM endpoints
 WHERE id = ? LIMIT 1;
 
--- name: ListEndpoints :many
+-- name: ListEndpointsPaginated :many
 SELECT * FROM endpoints
 WHERE collection_id = ?
-ORDER BY name;
+ORDER BY name
+LIMIT ? OFFSET ?;
+
+-- name: CountEndpointsByCollection :one
+SELECT COUNT(*) FROM endpoints
+WHERE collection_id = ?;
 
 -- name: UpdateEndpoint :one
 UPDATE endpoints
