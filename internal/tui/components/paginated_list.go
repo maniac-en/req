@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/tui/styles"
 )
 
@@ -28,15 +29,23 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 		listItems[i] = item
 	}
 
-	const defaultWidth = 20
-	const defaultHeight = 14
+	const defaultWidth = 120 // Wide enough to avoid title truncation
+	const defaultHeight = 20
 
 	l := list.New(listItems, paginatedItemDelegate{}, defaultWidth, defaultHeight)
 	l.Title = title
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(false)
-	l.SetShowHelp(false) // Disable built-in help text
-	l.Styles.Title = styles.TitleStyle
+	l.SetFilteringEnabled(true)
+	l.SetShowHelp(false)
+	l.SetShowPagination(false)
+	l.SetShowTitle(true)
+
+	l.Styles.StatusBar = lipgloss.NewStyle()
+	l.Styles.PaginationStyle = lipgloss.NewStyle()
+	l.Styles.HelpStyle = lipgloss.NewStyle()
+	l.Styles.FilterPrompt = lipgloss.NewStyle()
+	l.Styles.FilterCursor = lipgloss.NewStyle()
+	l.Styles.Title = styles.TitleStyle.Copy().MarginBottom(0).PaddingBottom(0)
 
 	return PaginatedList{
 		list: l,
@@ -46,7 +55,7 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 func (pl *PaginatedList) SetSize(width, height int) {
 	pl.width = width
 	pl.height = height
-	
+
 	// Safety check to prevent nil pointer dereference
 	if width > 0 && height > 0 {
 		pl.list.SetWidth(width)
@@ -79,6 +88,14 @@ func (pl PaginatedList) SelectedItem() ListItem {
 
 func (pl PaginatedList) SelectedIndex() int {
 	return pl.list.Index()
+}
+
+func (pl *PaginatedList) SetIndex(i int) {
+	pl.list.Select(i)
+}
+
+func (pl PaginatedList) IsFiltering() bool {
+	return pl.list.FilterState() == list.Filtering
 }
 
 type paginatedItemDelegate struct{}

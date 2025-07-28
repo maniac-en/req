@@ -22,10 +22,10 @@ func NewAddCollectionView(collectionsManager *collections.CollectionsManager) Ad
 	inputs := []components.TextInput{
 		components.NewTextInput("Name", "Enter collection name"),
 	}
-	
+
 	form := components.NewForm("Add Collection", inputs)
 	form.SetSubmitText("Create")
-	
+
 	return AddCollectionView{
 		layout:             components.NewLayout(),
 		form:               form,
@@ -45,31 +45,24 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 		v.width = msg.Width
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
-		v.form.SetSize(v.width-4, v.height-8) // Account for layout padding
-		
+		v.form.SetSize(v.width-4, v.height-8)
+
 	case tea.KeyMsg:
 		if v.submitting {
-			// Don't handle keys while submitting
 			return v, nil
 		}
-		
+
 		switch msg.String() {
 		case "enter":
 			return v, func() tea.Msg { return v.submitForm() }
 		case "esc":
 			return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		}
-		
-	case CollectionCreatedMsg:
-		// Collection was created successfully
-		return v, func() tea.Msg { return BackToCollectionsMsg{} }
-		
+
 	case CollectionCreateErrorMsg:
-		// Handle error - for now just stop submitting
 		v.submitting = false
 	}
-	
-	// Update form
+
 	v.form, cmd = v.form.Update(msg)
 	return v, cmd
 }
@@ -77,11 +70,11 @@ func (v AddCollectionView) Update(msg tea.Msg) (AddCollectionView, tea.Cmd) {
 func (v *AddCollectionView) submitForm() tea.Msg {
 	v.submitting = true
 	values := v.form.GetValues()
-	
+
 	if len(values) == 0 || values[0] == "" {
 		return CollectionCreateErrorMsg{err: crud.ErrInvalidInput}
 	}
-	
+
 	return v.createCollection(values[0])
 }
 
@@ -91,6 +84,10 @@ func (v *AddCollectionView) createCollection(name string) tea.Msg {
 		return CollectionCreateErrorMsg{err: err}
 	}
 	return CollectionCreatedMsg{collection: collection}
+}
+
+func (v *AddCollectionView) ClearForm() {
+	v.form.Clear()
 }
 
 func (v AddCollectionView) View() string {
@@ -104,7 +101,7 @@ func (v AddCollectionView) View() string {
 
 	content := v.form.View()
 	instructions := "tab/↑↓: navigate • enter: create • esc: cancel"
-	
+
 	return v.layout.FullView(
 		"Add Collection",
 		content,
@@ -112,7 +109,6 @@ func (v AddCollectionView) View() string {
 	)
 }
 
-// Messages for collection operations
 type CollectionCreatedMsg struct {
 	collection collections.CollectionEntity
 }
@@ -130,15 +126,15 @@ type CollectionUpdateErrorMsg struct {
 }
 
 type CollectionDeletedMsg struct {
-	id int64
+	ID int64
 }
 
 type CollectionDeleteErrorMsg struct {
-	err error
+	Err error
 }
 
 type BackToCollectionsMsg struct{}
 
 type EditCollectionMsg struct {
-	collection collections.CollectionEntity
+	Collection collections.CollectionEntity
 }

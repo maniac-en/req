@@ -19,43 +19,76 @@ func (l *Layout) SetSize(width, height int) {
 	l.height = height
 }
 
-func (l Layout) Header(title string) string {
-	return styles.HeaderStyle.
-		Width(l.width).
-		Render(title)
-}
-
-func (l Layout) Footer(instructions string) string {
-	return styles.FooterStyle.
-		Width(l.width).
-		Render(instructions)
-}
-
-func (l Layout) Content(content string, headerHeight, footerHeight int) string {
-	contentHeight := l.height - headerHeight - footerHeight
-	if contentHeight < 0 {
-		contentHeight = 0
+func (l Layout) FullView(title, content, instructions string) string {
+	if l.width < 20 || l.height < 10 {
+		return content
 	}
 
-	return styles.ContentStyle.
-		Width(l.width).
+	windowWidth := int(float64(l.width) * 0.85)
+	windowHeight := int(float64(l.height) * 0.8)
+
+	if windowWidth < 50 {
+		windowWidth = 50
+	}
+	if windowHeight < 15 {
+		windowHeight = 15
+	}
+
+	innerWidth := windowWidth - 4
+	innerHeight := windowHeight - 4
+	header := styles.WindowHeaderStyle.Copy().
+		Width(innerWidth).
+		Render(title)
+
+	headerHeight := lipgloss.Height(header)
+	contentHeight := innerHeight - headerHeight
+
+	if contentHeight < 1 {
+		contentHeight = 1
+	}
+
+	contentArea := styles.WindowContentStyle.Copy().
+		Width(innerWidth).
 		Height(contentHeight).
 		Render(content)
-}
 
-func (l Layout) FullView(title, content, instructions string) string {
-	header := l.Header(title)
-	footer := l.Footer(instructions)
-	
-	headerHeight := lipgloss.Height(header)
-	footerHeight := lipgloss.Height(footer)
-	
-	contentArea := l.Content(content, headerHeight, footerHeight)
-	
-	return lipgloss.JoinVertical(
+	windowContent := lipgloss.JoinVertical(
 		lipgloss.Left,
 		header,
 		contentArea,
+	)
+
+	borderedWindow := styles.WindowBorderStyle.Copy().
+		Width(windowWidth).
+		Height(windowHeight).
+		Render(windowContent)
+
+	brandingText := "Req - Test APIs with Terminal Velocity"
+	appBranding := styles.AppBrandingStyle.Copy().
+		Width(l.width).
+		Render(brandingText)
+
+	footer := styles.WindowFooterStyle.Copy().
+		Width(l.width).
+		Render(instructions)
+
+	brandingHeight := lipgloss.Height(appBranding)
+	footerHeight := lipgloss.Height(footer)
+	windowPlacementHeight := l.height - brandingHeight - footerHeight - 4
+
+	centeredWindow := lipgloss.Place(
+		l.width, windowPlacementHeight,
+		lipgloss.Center, lipgloss.Center,
+		borderedWindow,
+	)
+
+	return lipgloss.JoinVertical(
+		lipgloss.Left,
+		"",
+		appBranding,
+		"",
+		centeredWindow,
+		"",
 		footer,
 	)
 }

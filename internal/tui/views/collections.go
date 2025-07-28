@@ -11,23 +11,34 @@ import (
 )
 
 type CollectionsView struct {
-	layout         components.Layout
-	list           components.PaginatedList
+	layout             components.Layout
+	list               components.PaginatedList
 	collectionsManager *collections.CollectionsManager
-	width          int
-	height         int
-	initialized    bool
-	
-	// Backend pagination state
-	currentPage    int
-	pageSize       int
-	pagination     crud.PaginationMetadata
+	width              int
+	height             int
+	initialized        bool
+	selectedIndex      int
+
+	currentPage int
+	pageSize    int
+	pagination  crud.PaginationMetadata
 }
 
 func NewCollectionsView(collectionsManager *collections.CollectionsManager) CollectionsView {
 	return CollectionsView{
-		layout:            components.NewLayout(),
+		layout:             components.NewLayout(),
 		collectionsManager: collectionsManager,
+	}
+}
+
+func NewCollectionsViewWithSize(collectionsManager *collections.CollectionsManager, width, height int) CollectionsView {
+	layout := components.NewLayout()
+	layout.SetSize(width, height)
+	return CollectionsView{
+		layout:             layout,
+		collectionsManager: collectionsManager,
+		width:              width,
+		height:             height,
 	}
 }
 
@@ -36,7 +47,22 @@ func (v CollectionsView) Init() tea.Cmd {
 }
 
 func (v *CollectionsView) loadCollections() tea.Msg {
-	return v.loadCollectionsPage(1, 20) // Load first page with 20 items
+	pageToLoad := v.currentPage
+	if pageToLoad == 0 {
+		pageToLoad = 1
+	}
+	pageSizeToLoad := v.pageSize
+	if pageSizeToLoad == 0 {
+		pageSizeToLoad = 20
+	}
+
+	if v.initialized {
+		v.selectedIndex = v.list.SelectedIndex()
+	} else {
+		v.selectedIndex = 0
+	}
+
+	return v.loadCollectionsPage(pageToLoad, pageSizeToLoad)
 }
 
 func (v *CollectionsView) loadCollectionsPage(page, pageSize int) tea.Msg {
@@ -72,73 +98,93 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.width = msg.Width
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
-		
-		// Only set list size if it's been initialized
-		if v.initialized {
-			contentHeight := v.height - 4 // Account for header/footer
-			v.list.SetSize(v.width-4, contentHeight)
-		}
-		
+
 	case collectionsLoaded:
 		items := make([]components.ListItem, len(msg.collections))
 		for i, collection := range msg.collections {
 			items[i] = components.NewCollectionItem(collection)
 		}
-		
-		// Update pagination state
+
 		v.currentPage = msg.currentPage
 		v.pageSize = msg.pageSize
 		v.pagination = msg.pagination
-		
-		// Create list with pagination info in title
-		title := fmt.Sprintf("Collections (Page %d/%d)", v.currentPage, v.pagination.TotalPages)
+
+		title := fmt.Sprintf("Page %d / %d", v.currentPage, v.pagination.TotalPages)
 		v.list = components.NewPaginatedList(items, title)
-		
-		if v.width > 0 && v.height > 0 {
-			contentHeight := v.height - 4
-			v.list.SetSize(v.width-4, contentHeight)
-		}
+		v.list.SetIndex(v.selectedIndex)
+
 		v.initialized = true
-		
+
 	case collectionsLoadError:
-		// Handle error - for now just mark as initialized
 		v.initialized = true
-		
+
 	case tea.KeyMsg:
 		if !v.initialized {
 			break
 		}
-		
-		// Handle pagination keys first, before the list can consume them
-		switch msg.String() {
-		case "n", "right":
-			// Next page
-			if v.currentPage < v.pagination.TotalPages {
-				return v, func() tea.Msg {
-					return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
+
+		if !v.list.IsFiltering() {
+			switch msg.String() {
+			case "n", "right":
+				if v.currentPage < v.pagination.TotalPages {
+					v.selectedIndex = 0
+					return v, func() tea.Msg {
+						return v.loadCollectionsPage(v.currentPage+1, v.pageSize)
+					}
 				}
-			}
-			return v, nil
-		case "p", "left":
-			// Previous page
-			if v.currentPage > 1 {
-				return v, func() tea.Msg {
-					return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
+				return v, nil
+			case "p", "left":
+				if v.currentPage > 1 {
+					v.selectedIndex = 0
+					return v, func() tea.Msg {
+						return v.loadCollectionsPage(v.currentPage-1, v.pageSize)
+					}
 				}
+				return v, nil
 			}
-			return v, nil
-		default:
-			// Forward other keys to the list
-			v.list, cmd = v.list.Update(msg)
 		}
-		
+
+		v.list, cmd = v.list.Update(msg)
+
 	default:
 		if v.initialized {
 			v.list, cmd = v.list.Update(msg)
 		}
 	}
-	
+
 	return v, cmd
+}
+
+func (v CollectionsView) IsFiltering() bool {
+	return v.initialized && v.list.IsFiltering()
+}
+
+func (v CollectionsView) IsInitialized() bool {
+	return v.initialized
+}
+
+func (v *CollectionsView) SetSelectedIndex(index int) {
+	v.selectedIndex = index
+	if v.initialized {
+		v.list.SetIndex(index)
+	}
+}
+
+func (v CollectionsView) GetSelectedItem() *collections.CollectionEntity {
+	if !v.initialized {
+		return nil
+	}
+	if selectedItem := v.list.SelectedItem(); selectedItem != nil {
+		if collectionItem, ok := selectedItem.(components.CollectionItem); ok {
+			collection := collectionItem.GetCollection()
+			return &collection
+		}
+	}
+	return nil
+}
+
+func (v CollectionsView) GetSelectedIndex() int {
+	return v.list.SelectedIndex()
 }
 
 func (v CollectionsView) View() string {
@@ -151,17 +197,19 @@ func (v CollectionsView) View() string {
 	}
 
 	content := v.list.View()
-	
-	// Build instructions with pagination info
-	instructions := "↑↓: navigate • a: add • enter: edit • d: delete • q: quit"
-	if v.pagination.TotalPages > 1 {
-		instructions += fmt.Sprintf(" • p/n: prev/next page (%d/%d)", v.currentPage, v.pagination.TotalPages)
+
+	// Build instructions with pagination and filter info
+	instructions := "↑↓: navigate • /: filter • e: edit • x: delete • q: quit"
+	if !v.list.IsFiltering() {
+		instructions = "↑↓: navigate • a: add • /: filter • e: edit • x: delete • q: quit"
 	}
-	
+	if v.pagination.TotalPages > 1 && !v.list.IsFiltering() {
+		instructions += " • p/n: prev/next page"
+	}
+
 	return v.layout.FullView(
 		"Collections",
 		content,
 		instructions,
 	)
 }
-

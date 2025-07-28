@@ -38,7 +38,10 @@ type PaginationMetadata struct {
 }
 
 func CalculatePagination(total int64, limit, offset int) PaginationMetadata {
-	totalPages := int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
+	totalPages := 1
+	if total > 0 {
+		totalPages = int((total + int64(limit) - 1) / int64(limit)) // Ceiling division
+	}
 	currentPage := (offset / limit) + 1
 	hasNext := (offset + limit) < int(total)
 	hasPrev := offset > 0
