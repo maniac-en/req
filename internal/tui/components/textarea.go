@@ -215,12 +215,8 @@ func (t Textarea) Update(msg tea.Msg) (Textarea, tea.Cmd) {
 }
 
 func (t Textarea) View() string {
-	labelStyle := styles.TitleStyle.Copy().
-		Width(12).
-		Align(lipgloss.Right)
-
-	// Use helper method for consistent width calculation
-	containerWidth := t.width - 12 - 1 - 2
+	// Use full width since we don't need label space
+	containerWidth := t.width - 4 // Just account for padding
 	if containerWidth < 20 {
 		containerWidth = 20
 	}
@@ -267,17 +263,12 @@ func (t Textarea) View() string {
 	content := strings.Join(visibleLines, "\n")
 	textareaView := container.Render(content)
 
-	return lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		labelStyle.Render(t.label+":"),
-		" ",
-		textareaView,
-	)
+	return textareaView
 }
 
 func (t Textarea) getContentWidth() int {
-	// Calculate content width (accounting for label, colon, spacing, border, padding)
-	containerWidth := t.width - 12 - 1 - 2 // label + colon + spacing
+	// Calculate content width (no label needed)
+	containerWidth := t.width - 4 // Just account for padding
 	if containerWidth < 20 {
 		containerWidth = 20
 	}

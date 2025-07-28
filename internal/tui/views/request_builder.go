@@ -1,6 +1,8 @@
 package views
 
 import (
+	"encoding/json"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/backend/endpoints"
@@ -23,6 +25,8 @@ type RequestBuilder struct {
 	requestBody      string
 	activeTab        RequestBuilderTab
 	bodyTextarea     components.Textarea
+	headersEditor    components.KeyValueEditor
+	queryEditor      components.KeyValueEditor
 	width            int
 	height           int
 	focused          bool
@@ -31,6 +35,8 @@ type RequestBuilder struct {
 
 func NewRequestBuilder() RequestBuilder {
 	bodyTextarea := components.NewTextarea("Body", "Enter request body (JSON, text, etc.)")
+	headersEditor := components.NewKeyValueEditor("Headers")
+	queryEditor := components.NewKeyValueEditor("Query Params")
 
 	return RequestBuilder{
 		method:           "GET",
@@ -38,6 +44,8 @@ func NewRequestBuilder() RequestBuilder {
 		requestBody:      "",
 		activeTab:        RequestBodyTab,
 		bodyTextarea:     bodyTextarea,
+		headersEditor:    headersEditor,
+		queryEditor:      queryEditor,
 		focused:          false,
 		componentFocused: false,
 	}
@@ -67,6 +75,8 @@ func (rb *RequestBuilder) SetSize(width, height int) {
 	}
 	
 	rb.bodyTextarea.SetSize(textareaWidth, textareaHeight)
+	rb.headersEditor.SetSize(textareaWidth, textareaHeight)
+	rb.queryEditor.SetSize(textareaWidth, textareaHeight)
 }
 
 func (rb *RequestBuilder) Focus() {
@@ -74,12 +84,16 @@ func (rb *RequestBuilder) Focus() {
 	// Don't auto-focus any component - user needs to explicitly focus in
 	rb.componentFocused = false
 	rb.bodyTextarea.Blur()
+	rb.headersEditor.Blur()
+	rb.queryEditor.Blur()
 }
 
 func (rb *RequestBuilder) Blur() {
 	rb.focused = false
 	rb.componentFocused = false
 	rb.bodyTextarea.Blur()
+	rb.headersEditor.Blur()
+	rb.queryEditor.Blur()
 }
 
 func (rb RequestBuilder) Focused() bool {
@@ -96,7 +110,43 @@ func (rb *RequestBuilder) LoadFromEndpoint(endpoint endpoints.EndpointEntity) {
 	rb.url = endpoint.Url
 	rb.requestBody = endpoint.RequestBody
 	rb.bodyTextarea.SetValue(endpoint.RequestBody)
-	rb.bodyTextarea.Blur() // Make sure it's not focused by default
+
+	// Load headers from JSON
+	if endpoint.Headers != "" {
+		var headersMap map[string]string
+		if err := json.Unmarshal([]byte(endpoint.Headers), &headersMap); err == nil {
+			var headerPairs []components.KeyValuePair
+			for k, v := range headersMap {
+				headerPairs = append(headerPairs, components.KeyValuePair{
+					Key:     k,
+					Value:   v,
+					Enabled: true,
+				})
+			}
+			rb.headersEditor.SetPairs(headerPairs)
+		}
+	}
+
+	// Load query params from JSON
+	if endpoint.QueryParams != "" {
+		var queryMap map[string]string
+		if err := json.Unmarshal([]byte(endpoint.QueryParams), &queryMap); err == nil {
+			var queryPairs []components.KeyValuePair
+			for k, v := range queryMap {
+				queryPairs = append(queryPairs, components.KeyValuePair{
+					Key:     k,
+					Value:   v,
+					Enabled: true,
+				})
+			}
+			rb.queryEditor.SetPairs(queryPairs)
+		}
+	}
+
+	// Make sure components are not focused by default
+	rb.bodyTextarea.Blur()
+	rb.headersEditor.Blur()
+	rb.queryEditor.Blur()
 	rb.componentFocused = false
 }
 
@@ -127,9 +177,9 @@ func (rb RequestBuilder) Update(msg tea.Msg) (RequestBuilder, tea.Cmd) {
 				case RequestBodyTab:
 					rb.bodyTextarea.Focus()
 				case HeadersTab:
-					// TODO: Focus headers editor
+					rb.headersEditor.Focus()
 				case QueryParamsTab:
-					// TODO: Focus query params editor
+					rb.queryEditor.Focus()
 				}
 			}
 		// case "r":
@@ -144,7 +194,8 @@ func (rb RequestBuilder) Update(msg tea.Msg) (RequestBuilder, tea.Cmd) {
 			if rb.componentFocused {
 				rb.componentFocused = false
 				rb.bodyTextarea.Blur()
-				// TODO: Blur other components
+				rb.headersEditor.Blur()
+				rb.queryEditor.Blur()
 			}
 		}
 	}
@@ -155,9 +206,9 @@ func (rb RequestBuilder) Update(msg tea.Msg) (RequestBuilder, tea.Cmd) {
 		case RequestBodyTab:
 			rb.bodyTextarea, cmd = rb.bodyTextarea.Update(msg)
 		case HeadersTab:
-			// TODO: Update headers editor
+			rb.headersEditor, cmd = rb.headersEditor.Update(msg)
 		case QueryParamsTab:
-			// TODO: Update query params editor
+			rb.queryEditor, cmd = rb.queryEditor.Update(msg)
 		}
 	}
 
@@ -222,7 +273,8 @@ func (rb RequestBuilder) renderTabHeaders() string {
 		renderedTabs = append(renderedTabs, tabStyle.Render(tab))
 	}
 
-	return lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+	tabsRow := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+	return tabsRow
 }
 
 func (rb RequestBuilder) renderTabContent() string {
@@ -230,9 +282,9 @@ func (rb RequestBuilder) renderTabContent() string {
 	case RequestBodyTab:
 		return rb.bodyTextarea.View()
 	case HeadersTab:
-		return rb.renderPlaceholderTab("Headers editor coming soon...")
+		return rb.headersEditor.View()
 	case QueryParamsTab:
-		return rb.renderPlaceholderTab("Query params editor coming soon...")
+		return rb.queryEditor.View()
 	default:
 		return ""
 	}
@@ -256,12 +308,8 @@ func (rb RequestBuilder) renderPlaceholderTab(message string) string {
 		textareaHeight = 15
 	}
 
-	// Create a placeholder with the same structure as textarea
-	labelStyle := styles.TitleStyle.Copy().
-		Width(12).
-		Align(lipgloss.Right)
-
-	containerWidth := textareaWidth - 12 - 1 - 2 // Same calculation as textarea
+	// Create a placeholder with the same structure as textarea (no label)
+	containerWidth := textareaWidth - 4 // Same calculation as textarea
 	if containerWidth < 20 {
 		containerWidth = 20
 	}
@@ -273,12 +321,7 @@ func (rb RequestBuilder) renderPlaceholderTab(message string) string {
 		BorderForeground(styles.Secondary).
 		Align(lipgloss.Center, lipgloss.Center)
 
-	return lipgloss.JoinHorizontal(
-		lipgloss.Top,
-		labelStyle.Render("Coming Soon:"),
-		" ",
-		container.Render(message),
-	)
+	return container.Render(message)
 }
 
 // Message types
