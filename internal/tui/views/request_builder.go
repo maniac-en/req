@@ -64,7 +64,7 @@ func (rb *RequestBuilder) SetSize(width, height int) {
 	if textareaWidth < 60 {
 		textareaWidth = 60 // Ensure minimum usable width
 	}
-	
+
 	// Set height for textarea (leave space for method/URL, tabs)
 	textareaHeight := height - 8 // Account for method/URL row + tabs + spacing
 	if textareaHeight < 5 {
@@ -73,7 +73,7 @@ func (rb *RequestBuilder) SetSize(width, height int) {
 	if textareaHeight > 15 {
 		textareaHeight = 15 // Cap at reasonable height
 	}
-	
+
 	rb.bodyTextarea.SetSize(textareaWidth, textareaHeight)
 	rb.headersEditor.SetSize(textareaWidth, textareaHeight)
 	rb.queryEditor.SetSize(textareaWidth, textareaHeight)
@@ -292,7 +292,7 @@ func (rb RequestBuilder) renderPlaceholderTab(message string) string {
 	if textareaWidth < 60 {
 		textareaWidth = 60
 	}
-	
+
 	textareaHeight := rb.height - 8
 	if textareaHeight < 5 {
 		textareaHeight = 5
@@ -323,4 +323,3 @@ type RequestSendMsg struct {
 	URL    string
 	Body   string
 }
-

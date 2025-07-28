@@ -13,13 +13,13 @@ type KeyValuePair struct {
 }
 
 type KeyValueEditor struct {
-	label        string
-	pairs        []KeyValuePair
-	width        int
-	height       int
-	focused      bool
-	focusIndex   int // Which pair is focused
-	fieldIndex   int // 0=key, 1=value, 2=enabled
+	label      string
+	pairs      []KeyValuePair
+	width      int
+	height     int
+	focused    bool
+	focusIndex int // Which pair is focused
+	fieldIndex int // 0=key, 1=value, 2=enabled
 }
 
 func NewKeyValueEditor(label string) KeyValueEditor {
@@ -176,11 +176,11 @@ func (kv KeyValueEditor) View() string {
 
 	// Header - better column proportions
 	headerStyle := styles.ListItemStyle.Copy().Bold(true)
-	availableWidth := containerWidth - 8 // Account for padding and separators
-	keyWidth := availableWidth * 40 / 100  // 40% for key
-	valueWidth := availableWidth * 50 / 100 // 50% for value  
+	availableWidth := containerWidth - 8      // Account for padding and separators
+	keyWidth := availableWidth * 40 / 100     // 40% for key
+	valueWidth := availableWidth * 50 / 100   // 50% for value
 	enabledWidth := availableWidth * 10 / 100 // 10% for enabled
-	
+
 	header := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		headerStyle.Copy().Width(keyWidth).Render("Key"),
@@ -199,7 +199,7 @@ func (kv KeyValueEditor) View() string {
 
 	for i := 0; i < maxPairs && i < len(kv.pairs); i++ {
 		pair := kv.pairs[i]
-		
+
 		// Style fields based on focus
 		keyStyle := styles.ListItemStyle.Copy().Width(keyWidth)
 		valueStyle := styles.ListItemStyle.Copy().Width(valueWidth)

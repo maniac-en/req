@@ -105,7 +105,7 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 	case tea.KeyMsg:
 		// Clear notification on any keypress
 		v.notification = ""
-		
+
 		// If request builder is in component editing mode, only handle esc - forward everything else
 		if v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.IsEditingComponent() {
 			if msg.String() == "esc" {
@@ -119,7 +119,7 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 			v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
 			return v, builderCmd
 		}
-		
+
 		// Normal key handling when not editing
 		switch msg.String() {
 		case "esc", "q":

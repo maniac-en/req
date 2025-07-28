@@ -34,7 +34,7 @@ func NewModel(ctx *Context) Model {
 	if ctx.DummyDataCreated {
 		collectionsView.SetDummyDataNotification(true)
 	}
-	
+
 	m := Model{
 		ctx:               ctx,
 		mode:              CollectionsViewMode,
