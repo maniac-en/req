@@ -23,7 +23,7 @@ The project uses:
 ## Installation
 
 ```bash
-go install github.com/maniac-en/req@v0.1.0
+go install github.com/maniac-en/req@latest
 req
 ```
 
@@ -47,7 +47,7 @@ req
 ## Try It Out
 
 **GitHub**: https://github.com/maniac-en/req  
-**Installation**: `go install github.com/maniac-en/req@v0.1.0`  
+**Installation**: `go install github.com/maniac-en/req@latest`  
 **Usage**: Just run `req` in your terminal!
 
 The app works completely offline with no external dependencies required.

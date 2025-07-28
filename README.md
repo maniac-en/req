@@ -21,10 +21,10 @@ Read more about `req` over here -
 To install a specific release
 
 ```
-go install github.com/maniac-en/req@v0.1.0
+go install github.com/maniac-en/req@latest
 ```
 
-Replace `v0.1.0` with the version you want.
+Replace `latest` with the specific version you want.
 
 ### Requirements
 
