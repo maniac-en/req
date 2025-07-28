@@ -1,59 +1,56 @@
 # Req - Test APIs with Terminal Velocity
 
-> **Note**: This page is not up to date and serves as a boilerplate for the blog setup.
-
 A terminal-based API client built for the [Boot.dev Hackathon 2025](https://blog.boot.dev/news/hackathon-2025/).
 
 ## Features
 
-- Terminal user interface
-- Request collections
-- Environment variables
-- Request history
+- Terminal user interface with beautiful TUI
+- Request collections and organization  
+- Demo data generation with realistic APIs
+- Request builder with tabs for body, headers, query params
+- Production-ready logging system
 
 ## Tech Stack
 
 The project uses:
 
-1. **Go** for core logic
-2. **Bubble Tea** for TUI
-3. **SQLite** for storage
-
-### Code Example
-
-```go
-func main() {
-    fmt.Println("Hello, req!")
-}
-```
+1. **Go** for core logic and HTTP operations
+2. **Bubble Tea** for terminal user interface
+3. **SQLite** for file-based storage
+4. **SQLC** for type-safe database operations
+5. **Goose** for database migrations
 
 ## Installation
 
 ```bash
-go build -o req .
-./req
+go install github.com/maniac-en/req@v0.1.0
+req
 ```
 
-### Commands
+## What's Implemented
 
-- `req --help` - Show help
-- `req --verbose` - Verbose output
+- Collections CRUD operations (create, edit, delete, navigate)
+- Request builder interface with tabbed editing
+- Endpoint browsing with sidebar navigation
+- Demo data generation (JSONPlaceholder, ReqRes, HTTPBin APIs)
+- Beautiful warm color scheme with vim-like navigation
+- Pagination and real-time search filtering
 
-## Lists Test
+## Coming Soon
 
-**Unordered list:**
-- Item one
-- Item two
-- Item three
+- HTTP request execution (core feature)
+- Response viewer with syntax highlighting  
+- Endpoint management (add/edit endpoints)
+- Environment variables support
+- Export/import functionality
 
-**Ordered list:**
-1. First step
-2. Second step
-3. Third step
+## Try It Out
 
-## Text Formatting
+**GitHub**: https://github.com/maniac-en/req  
+**Installation**: `go install github.com/maniac-en/req@v0.1.0`  
+**Usage**: Just run `req` in your terminal!
 
-This has **bold text**, _italic text_, and `inline code`.
+The app works completely offline with no external dependencies required.
 
 ---
 
