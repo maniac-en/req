@@ -69,7 +69,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = SelectedCollectionViewMode
 						m.selectedCollectionView = views.NewSelectedCollectionView(m.ctx.Endpoints, *selectedItem)
-						return m, nil
+						return m, m.selectedCollectionView.Init()
 					} else {
 						log.Error("issue getting currently selected collection")
 					}

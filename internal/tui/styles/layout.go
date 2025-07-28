@@ -30,4 +30,12 @@ var (
 			MarginBottom(1).
 			Foreground(Primary).
 			Bold(true)
+
+	SidebarStyle = lipgloss.NewStyle().
+			BorderRight(true).
+			BorderStyle(lipgloss.NormalBorder()).
+			BorderForeground(Secondary)
+
+	MainContentStyle = lipgloss.NewStyle().
+			PaddingLeft(2)
 )

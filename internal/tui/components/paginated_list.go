@@ -6,6 +6,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/tui/styles"
 )
 
@@ -34,9 +35,17 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 	l := list.New(listItems, paginatedItemDelegate{}, defaultWidth, defaultHeight)
 	l.Title = title
 	l.SetShowStatusBar(false)
-	l.SetFilteringEnabled(true) // Enable filtering
-	l.SetShowHelp(false)        // Disable built-in help text
-	l.Styles.Title = styles.TitleStyle
+	l.SetFilteringEnabled(true)
+	l.SetShowHelp(false)
+	l.SetShowPagination(false)
+	l.SetShowTitle(true)
+
+	l.Styles.StatusBar = lipgloss.NewStyle()
+	l.Styles.PaginationStyle = lipgloss.NewStyle()
+	l.Styles.HelpStyle = lipgloss.NewStyle()
+	l.Styles.FilterPrompt = lipgloss.NewStyle()
+	l.Styles.FilterCursor = lipgloss.NewStyle()
+	l.Styles.Title = styles.TitleStyle.Copy().MarginBottom(0).PaddingBottom(0)
 
 	return PaginatedList{
 		list: l,
