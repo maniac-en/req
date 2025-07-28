@@ -11,8 +11,8 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  test-matrix:
-    name: Test on ${{ matrix.os }}
+  build-test:
+    name: Build, Test & Coverage on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -30,36 +30,23 @@ jobs:
       - name: Build
         run: go build ./...
 
-      - name: Run Tests
-        run: go test ./...
-
-  coverage:
-    name: Code Coverage 
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.4'
-
-      - name: Run tests with coverage
+      - name: Run Tests with Coverage
         run: |
           go test -coverprofile=coverage.out ./...
           go tool cover -func=coverage.out
+        shell: bash
 
-      - name: Upload coverage artifact
+      - name: Upload coverage report
+        if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.out
 
   format:
-    name: Format
+    name: Auto-format with gofmt (Linux only)
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.repository_owner == github.actor
 
     steps:
       - name: Checkout code
@@ -70,15 +57,16 @@ jobs:
         with:
           go-version: '1.24.4'
 
-      - name: Auto-format code and commit changes
+      - name: Run gofmt and commit changes if needed
         run: |
           gofmt -w .
           if [ -n "$(git status --porcelain)" ]; then
-            echo "Formatting changes detected. Committing..."
+            echo "Code was not formatted. Committing changes..."
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
             git add .
             git commit -m "chore: auto-format Go code via gofmt"
             git push
           else
-            echo "Code is already formatted. No changes needed."
+            echo "Code already properly formatted."
+          fi
