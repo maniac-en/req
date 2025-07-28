@@ -217,7 +217,7 @@ func (v SelectedCollectionView) View() string {
 		mainStyle.Render(mainContent),
 	)
 
-	instructions := "↑↓: navigate endpoints • 1: request • 2: response • enter: edit • esc: stop editing • r: send • esc/q: back"
+	instructions := "↑↓: navigate endpoints • a: add endpoint • 1: request • 2: response • enter: edit • esc: stop editing • r: send • esc/q: back"
 	if v.notification != "" {
 		instructions = lipgloss.NewStyle().
 			Foreground(styles.Warning).
