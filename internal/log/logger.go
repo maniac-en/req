@@ -3,11 +3,9 @@ package log
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"sync"
-	"time"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
