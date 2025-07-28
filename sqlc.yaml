@@ -5,6 +5,6 @@ sql:
     engine: "sqlite"
     gen:
       go:
-        out: "internal/database"
+        out: "internal/backend/database"
         emit_json_tags: true
         emit_db_tags: true

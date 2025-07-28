@@ -4,27 +4,19 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> req - Terminal API Client </title>
+    <title> Req - Test APIs with Terminal Velocity </title>
     <link href="/req/index.css" rel="stylesheet">
     
 </head>
 
 <body>
     <article>
-        <div><h1>req - Terminal API Client</h1><blockquote><b>Note</b>: This page is not up to date and serves as a boilerplate for the blog setup.</blockquote><p>A terminal-based API client built for the <a href="https://blog.boot.dev/news/hackathon-2025/">Boot.dev Hackathon 2025</a>.</p><h2>Features</h2><ul><li>Terminal user interface</li><li>Request collections</li><li>Environment variables</li><li>Request history</li></ul><h2>Tech Stack</h2><p>The project uses:</p><ol><li><b>Go</b> for core logic</li><li><b>Bubble Tea</b> for TUI</li><li><b>SQLite</b> for storage</li></ol><h3>Code Example</h3><pre>go
-func main() {
-    fmt.Println("Hello, req!")
-}
-</pre><h2>Installation</h2><pre>bash
-go build -o req .
-./req
-</pre><h3>Commands</h3><ul><li><code>req --help</code> - Show help</li><li><code>req --verbose</code> - Verbose output</li></ul><h2>Lists Test</h2><p><b>Unordered list:</b>
-- Item one
-- Item two
-- Item three</p><p><b>Ordered list:</b>
-1. First step
-2. Second step
-3. Third step</p><h2>Text Formatting</h2><p>This has <b>bold text</b>, <i>italic text</i>, and <code>inline code</code>.</p><p>---</p><p>This blog is built with ❤️ using <a href="https://github.com/maniac-en/pyssg">pyssg</a> - A guided learning project at <a href="https://www.boot.dev/courses/build-static-site-generator">boot.dev</a></p></div>
+        <div><img src="images/banner.png" alt="Req Banner" style="width: 100%; max-width: 800px; margin-bottom: 20px;"><h1>Req - Test APIs with Terminal Velocity</h1><p>A terminal-based API client built for the <a href="https://blog.boot.dev/news/hackathon-2025/">Boot.dev Hackathon 2025</a>.</p><h2>Features</h2><ul><li>Terminal user interface with beautiful TUI</li><li>Request collections and organization</li><li>Demo data generation with realistic APIs</li><li>Request builder with tabs for body, headers, query params</li><li>Production-ready logging system</li></ul><h2>Tech Stack</h2><p>The project uses:</p><ol><li><b>Go</b> for core logic and HTTP operations</li><li><b>Bubble Tea</b> for terminal user interface</li><li><b>SQLite</b> for file-based storage</li><li><b>SQLC</b> for type-safe database operations</li><li><b>Goose</b> for database migrations</li></ol><h2>Installation</h2><pre>bash
+go install github.com/maniac-en/req@v0.1.0
+req
+</pre><img src="images/req-demo.gif" alt="Demo GIF" style="width: 100%; max-width: 800px; margin: 20px 0;"><h2>What's Implemented</h2><ul><li>Collections CRUD operations (create, edit, delete, navigate)</li><li>Request builder interface with tabbed editing</li><li>Endpoint browsing with sidebar navigation</li><li>Demo data generation (JSONPlaceholder, ReqRes, HTTPBin APIs)</li><li>Beautiful warm color scheme with vim-like navigation</li><li>Pagination and real-time search filtering</li></ul><h2>Coming Soon</h2><ul><li>HTTP request execution (core feature)</li><li>Response viewer with syntax highlighting</li><li>Endpoint management (add/edit endpoints)</li><li>Environment variables support</li><li>Export/import functionality</li></ul><h2>Try It Out</h2><p><b>GitHub</b>: https://github.com/maniac-en/req
+<b>Installation</b>: <code>go install github.com/maniac-en/req@v0.1.0</code>
+<b>Usage</b>: Just run <code>req</code> in your terminal!</p><p>The app works completely offline with no external dependencies required.</p><p>---</p><p>This blog is built with ❤️ using <a href="https://github.com/maniac-en/pyssg">pyssg</a> - A guided learning project at <a href="https://www.boot.dev/courses/build-static-site-generator">boot.dev</a></p></div>
     </article>
 </body>
 

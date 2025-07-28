@@ -11,14 +11,14 @@ import (
 	"path/filepath"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/maniac-en/req/global"
-	"github.com/maniac-en/req/internal/app"
-	"github.com/maniac-en/req/internal/collections"
-	"github.com/maniac-en/req/internal/database"
-	"github.com/maniac-en/req/internal/endpoints"
-	"github.com/maniac-en/req/internal/history"
-	"github.com/maniac-en/req/internal/http"
+	"github.com/maniac-en/req/internal/backend/collections"
+	"github.com/maniac-en/req/internal/backend/database"
+	"github.com/maniac-en/req/internal/backend/demo"
+	"github.com/maniac-en/req/internal/backend/endpoints"
+	"github.com/maniac-en/req/internal/backend/history"
+	"github.com/maniac-en/req/internal/backend/http"
 	"github.com/maniac-en/req/internal/log"
+	"github.com/maniac-en/req/internal/tui/app"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pressly/goose/v3"
 )
@@ -36,13 +36,7 @@ var (
 	DB          *sql.DB
 )
 
-type Config struct {
-	DB          *database.Queries
-	Collections *collections.CollectionsManager
-	Endpoints   *endpoints.EndpointsManager
-	HTTP        *http.HTTPManager
-	History     *history.HistoryManager
-}
+var Version = "dev"
 
 func initPaths() error {
 	// setup paths using OS-appropriate cache directory
@@ -141,27 +135,29 @@ func main() {
 	httpManager := http.NewHTTPManager()
 	historyManager := history.NewHistoryManager(db)
 
-	config := &Config{
-		DB:          db,
-		Collections: collectionsManager,
-		Endpoints:   endpointsManager,
-		HTTP:        httpManager,
-		History:     historyManager,
-	}
-	appContext := &global.AppContext{
-		Collections: collectionsManager,
-		Endpoints:   endpointsManager,
-		HTTP:        httpManager,
-		History:     historyManager,
-	}
-	global.SetAppContext(appContext)
+	// create clean context for dependency injection
+	appContext := app.NewContext(
+		collectionsManager,
+		endpointsManager,
+		httpManager,
+		historyManager,
+	)
 
-	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging"})
-	log.Debug("configuration loaded", "collections_manager", config.Collections != nil, "endpoints", config.Endpoints != nil, "database", config.DB != nil, "http_manager", config.HTTP != nil, "history_manager", config.History != nil)
+	// populate dummy data for demo
+	demoGenerator := demo.NewDemoGenerator(collectionsManager, endpointsManager)
+	dummyDataCreated, err := demoGenerator.PopulateDummyData(context.Background())
+	if err != nil {
+		log.Error("failed to populate dummy data", "error", err)
+	} else if dummyDataCreated {
+		appContext.SetDummyDataCreated(true)
+	}
+
+	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging", "demo"})
+	log.Debug("configuration loaded", "collections_manager", collectionsManager != nil, "endpoints", endpointsManager != nil, "database", db != nil, "http_manager", httpManager != nil, "history_manager", historyManager != nil)
 	log.Info("application started successfully")
 
 	// Entry point for UI
-	program := tea.NewProgram(app.InitialModel(), tea.WithAltScreen())
+	program := tea.NewProgram(app.NewModel(appContext), tea.WithAltScreen())
 	if _, err := program.Run(); err != nil {
 		log.Fatal("Fatal error:", err)
 	}

@@ -1,7 +1,7 @@
 {
   "project": {
     "name": "req",
-    "title": "req - Terminal API Client"
+    "title": "Req - Test APIs with Terminal Velocity"
   },
   "paths": {
     "content_dir": "web/content",
