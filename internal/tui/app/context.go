@@ -8,10 +8,11 @@ import (
 )
 
 type Context struct {
-	Collections *collections.CollectionsManager
-	Endpoints   *endpoints.EndpointsManager
-	HTTP        *http.HTTPManager
-	History     *history.HistoryManager
+	Collections      *collections.CollectionsManager
+	Endpoints        *endpoints.EndpointsManager
+	HTTP             *http.HTTPManager
+	History          *history.HistoryManager
+	DummyDataCreated bool
 }
 
 func NewContext(
@@ -21,9 +22,14 @@ func NewContext(
 	history *history.HistoryManager,
 ) *Context {
 	return &Context{
-		Collections: collections,
-		Endpoints:   endpoints,
-		HTTP:        httpManager,
-		History:     history,
+		Collections:      collections,
+		Endpoints:        endpoints,
+		HTTP:             httpManager,
+		History:          history,
+		DummyDataCreated: false,
 	}
+}
+
+func (c *Context) SetDummyDataCreated(created bool) {
+	c.DummyDataCreated = created
 }

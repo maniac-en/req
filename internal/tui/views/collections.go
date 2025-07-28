@@ -5,9 +5,12 @@ import (
 	"fmt"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/backend/collections"
 	"github.com/maniac-en/req/internal/backend/crud"
+	"github.com/maniac-en/req/internal/log"
 	"github.com/maniac-en/req/internal/tui/components"
+	"github.com/maniac-en/req/internal/tui/styles"
 )
 
 type CollectionsView struct {
@@ -18,6 +21,7 @@ type CollectionsView struct {
 	height             int
 	initialized        bool
 	selectedIndex      int
+	showDummyDataNotif bool
 
 	currentPage int
 	pageSize    int
@@ -40,6 +44,10 @@ func NewCollectionsViewWithSize(collectionsManager *collections.CollectionsManag
 		width:              width,
 		height:             height,
 	}
+}
+
+func (v *CollectionsView) SetDummyDataNotification(show bool) {
+	v.showDummyDataNotif = show
 }
 
 func (v CollectionsView) Init() tea.Cmd {
@@ -121,6 +129,11 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 	case tea.KeyMsg:
 		if !v.initialized {
 			break
+		}
+
+		// Clear dummy data notification on any keypress
+		if v.showDummyDataNotif {
+			v.showDummyDataNotif = false
 		}
 
 		if !v.list.IsFiltering() {
@@ -205,6 +218,14 @@ func (v CollectionsView) View() string {
 	}
 	if v.pagination.TotalPages > 1 && !v.list.IsFiltering() {
 		instructions += " • p/n: prev/next page"
+	}
+
+	// Show dummy data notification if needed
+	if v.showDummyDataNotif {
+		instructions = lipgloss.NewStyle().
+			Foreground(styles.Success).
+			Bold(true).
+			Render("✓ Demo data created! 3 collections with sample API endpoints ready to explore")
 	}
 
 	return v.layout.FullView(

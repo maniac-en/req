@@ -30,10 +30,15 @@ type Model struct {
 }
 
 func NewModel(ctx *Context) Model {
+	collectionsView := views.NewCollectionsView(ctx.Collections)
+	if ctx.DummyDataCreated {
+		collectionsView.SetDummyDataNotification(true)
+	}
+	
 	m := Model{
 		ctx:               ctx,
 		mode:              CollectionsViewMode,
-		collectionsView:   views.NewCollectionsView(ctx.Collections),
+		collectionsView:   collectionsView,
 		addCollectionView: views.NewAddCollectionView(ctx.Collections),
 	}
 	return m
@@ -117,6 +122,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 		if m.mode == CollectionsViewMode && !m.collectionsView.IsInitialized() {
 			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
+			if m.ctx.DummyDataCreated {
+				m.collectionsView.SetDummyDataNotification(true)
+			}
 			return m, m.collectionsView.Init()
 		}
 		if m.mode == CollectionsViewMode {
@@ -126,6 +134,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.mode = CollectionsViewMode
 		if m.width > 0 && m.height > 0 {
 			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
+			if m.ctx.DummyDataCreated {
+				m.collectionsView.SetDummyDataNotification(true)
+			}
 		}
 		m.collectionsView.SetSelectedIndex(m.selectedIndex)
 		return m, m.collectionsView.Init()
