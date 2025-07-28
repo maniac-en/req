@@ -1,4 +1,4 @@
-name: Go Build, Test, and Format
+name: Go CI
 
 on:
   push:
@@ -11,8 +11,8 @@ on:
       - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  build-test:
-    name: Build and Test on ${{ matrix.os }}
+  test-matrix:
+    name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -33,10 +33,9 @@ jobs:
       - name: Run Tests
         run: go test ./...
 
-  format:
-    name: Format 
+  coverage:
+    name: Code Coverage 
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' # only format on push events (not PRs from forks)
 
     steps:
       - name: Checkout code
@@ -47,16 +46,39 @@ jobs:
         with:
           go-version: '1.24.4'
 
-      - name: Auto-format code with gofmt and commit changes
+      - name: Run tests with coverage
+        run: |
+          go test -coverprofile=coverage.out ./...
+          go tool cover -func=coverage.out
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.out
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.4'
+
+      - name: Auto-format code and commit changes
         run: |
           gofmt -w .
           if [ -n "$(git status --porcelain)" ]; then
-            echo "Code was not formatted. Applying gofmt and committing changes..."
+            echo "Formatting changes detected. Committing..."
             git config user.name "github-actions"
             git config user.email "github-actions@github.com"
             git add .
             git commit -m "chore: auto-format Go code via gofmt"
             git push
           else
-            echo "Code already properly formatted."
-          fi
+            echo "Code is already formatted. No changes needed."
