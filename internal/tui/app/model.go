@@ -62,7 +62,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.mode == CollectionsViewMode {
 					m.selectedIndex = m.collectionsView.GetSelectedIndex()
 					m.mode = AddCollectionViewMode
-					// Send window size to the new view
 					if m.width > 0 && m.height > 0 {
 						sizeMsg := tea.WindowSizeMsg{Width: m.width, Height: m.height}
 						m.addCollectionView, _ = m.addCollectionView.Update(sizeMsg)
@@ -74,7 +73,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
 						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = SelectedCollectionViewMode
-						// Use proper constructor with dimensions when available
 						if m.width > 0 && m.height > 0 {
 							m.selectedCollectionView = views.NewSelectedCollectionViewWithSize(m.ctx.Endpoints, *selectedItem, m.width, m.height)
 						} else {
@@ -91,7 +89,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = EditCollectionViewMode
 						m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, *selectedItem)
-						// Send window size to the new view
 						if m.width > 0 && m.height > 0 {
 							sizeMsg := tea.WindowSizeMsg{Width: m.width, Height: m.height}
 							m.editCollectionView, _ = m.editCollectionView.Update(sizeMsg)
@@ -118,18 +115,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		// Recreate collections view with proper dimensions on first window size
 		if m.mode == CollectionsViewMode && !m.collectionsView.IsInitialized() {
 			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
 			return m, m.collectionsView.Init()
 		}
-		// For already initialized views, just update size
 		if m.mode == CollectionsViewMode {
 			m.collectionsView, _ = m.collectionsView.Update(msg)
 		}
 	case views.BackToCollectionsMsg:
 		m.mode = CollectionsViewMode
-		// Recreate with dimensions if we have them, to ensure proper sizing
 		if m.width > 0 && m.height > 0 {
 			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
 		}

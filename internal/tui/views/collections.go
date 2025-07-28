@@ -99,8 +99,6 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
 
-		// Let the FullView method handle sizing
-
 	case collectionsLoaded:
 		items := make([]components.ListItem, len(msg.collections))
 		for i, collection := range msg.collections {
@@ -115,7 +113,6 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.list = components.NewPaginatedList(items, title)
 		v.list.SetIndex(v.selectedIndex)
 
-		// Let the FullView method handle sizing
 		v.initialized = true
 
 	case collectionsLoadError:

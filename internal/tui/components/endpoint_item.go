@@ -39,4 +39,3 @@ func (i EndpointItem) Title() string {
 func (i EndpointItem) Description() string {
 	return i.GetDescription()
 }
-

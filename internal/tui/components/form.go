@@ -82,7 +82,6 @@ func (f Form) Update(msg tea.Msg) (Form, tea.Cmd) {
 		}
 	}
 
-	// Update the focused input
 	if f.focusIndex >= 0 && f.focusIndex < len(f.inputs) {
 		f.inputs[f.focusIndex], cmd = f.inputs[f.focusIndex].Update(msg)
 		if cmd != nil {
@@ -119,15 +118,12 @@ func (f *Form) prevInput() {
 func (f Form) View() string {
 	var content []string
 
-	// Add form inputs
 	for _, input := range f.inputs {
 		content = append(content, input.View())
 	}
 
-	// Add spacing
 	content = append(content, "")
 
-	// Add action buttons
 	buttonStyle := styles.ListItemStyle.Copy().
 		Padding(0, 2).
 		Background(styles.Primary).
