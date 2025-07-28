@@ -42,13 +42,13 @@ func (t *TextInput) SetWidth(width int) {
 	if containerWidth < 15 {
 		containerWidth = 15
 	}
-	
+
 	// The actual input width inside the container (subtract border and padding)
 	inputWidth := containerWidth - 4 // 2 for border, 2 for padding
 	if inputWidth < 10 {
 		inputWidth = 10
 	}
-	
+
 	// Ensure the underlying textinput respects the width
 	t.textInput.Width = inputWidth
 }
@@ -78,6 +78,7 @@ func (t TextInput) Update(msg tea.Msg) (TextInput, tea.Cmd) {
 func (t TextInput) View() string {
 	labelStyle := styles.TitleStyle.Copy().
 		Width(12).
+		MarginTop(1).
 		Align(lipgloss.Right)
 
 	// Create a fixed-width container for the input to prevent overflow
@@ -85,14 +86,14 @@ func (t TextInput) View() string {
 	if containerWidth < 15 {
 		containerWidth = 15
 	}
-	
+
 	inputContainer := styles.ListItemStyle.Copy().
 		Width(containerWidth).
 		Height(1).
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(styles.Secondary).
 		Padding(0, 1)
-	
+
 	if t.textInput.Focused() {
 		inputContainer = inputContainer.BorderForeground(styles.Primary)
 	}
