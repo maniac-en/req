@@ -28,6 +28,7 @@ type SelectedCollectionView struct {
 	activeMainTab    MainTab
 	width            int
 	height           int
+	notification     string
 }
 
 func NewSelectedCollectionView(endpointsManager *endpoints.EndpointsManager, httpManager *http.HTTPManager, collection collections.CollectionEntity) SelectedCollectionView {
@@ -102,6 +103,9 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 		v.requestBuilder.SetSize(innerWidth-sidebarWidth-1, innerHeight)
 
 	case tea.KeyMsg:
+		// Clear notification on any keypress
+		v.notification = ""
+		
 		// If request builder is in component editing mode, only handle esc - forward everything else
 		if v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.IsEditingComponent() {
 			if msg.String() == "esc" {
@@ -126,16 +130,12 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 		case "2":
 			v.activeMainTab = ResponseViewerMainTab
 			v.requestBuilder.Blur()
-			// case "enter":
-			// 	// If request builder is active, let it handle Enter first
-			// 	if v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.Focused() {
-			// 		var builderCmd tea.Cmd
-			// 		v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
-			// 		if builderCmd != nil {
-			// 			return v, builderCmd
-			// 		}
-			// 	}
-			// If not handled by request builder, fall through to normal forwarding
+		case "a":
+			v.notification = "Adding endpoints is not yet implemented"
+			return v, nil
+		case "r":
+			v.notification = "Sending requests is not yet implemented"
+			return v, nil
 		}
 
 	case EndpointSelectedMsg:
@@ -145,7 +145,6 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 		v.requestBuilder.Focus()
 
 	case RequestSendMsg:
-		// TODO: Handle request sending
 		return v, nil
 	}
 
@@ -219,6 +218,9 @@ func (v SelectedCollectionView) View() string {
 	)
 
 	instructions := "↑↓: navigate endpoints • 1: request • 2: response • enter: edit • esc: stop editing • r: send • esc/q: back"
+	if v.notification != "" {
+		instructions = v.notification
+	}
 
 	return v.layout.FullView(
 		title,
