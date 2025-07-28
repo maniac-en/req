@@ -34,7 +34,7 @@ jobs:
         run: go test ./...
 
   format:
-    name: Format on Linux
+    name: Format 
     runs-on: ubuntu-latest
     if: github.event_name == 'push' # only format on push events (not PRs from forks)
 
