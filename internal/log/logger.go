@@ -103,11 +103,6 @@ func Fatal(msg string, args ...any) {
 	os.Exit(1)
 }
 
-// Request ID utilities
-func GenerateRequestID() string {
-	return fmt.Sprintf("req_%d", time.Now().UnixNano())
-}
-
 type contextKey string
 
 const requestIDKey contextKey = "request_id"

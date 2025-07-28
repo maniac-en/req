@@ -47,18 +47,6 @@ func TestInitialize(t *testing.T) {
 }
 
 func TestRequestIDFunctions(t *testing.T) {
-	t.Run("generates unique request IDs", func(t *testing.T) {
-		id1 := GenerateRequestID()
-		id2 := GenerateRequestID()
-
-		if id1 == id2 {
-			t.Error("IDs should be unique")
-		}
-		if !strings.HasPrefix(id1, "req_") {
-			t.Error("ID should have req_ prefix")
-		}
-	})
-
 	t.Run("context request ID functions", func(t *testing.T) {
 		ctx := ContextWithRequestID(context.Background(), "test123")
 		retrieved := RequestIDFromContext(ctx)
