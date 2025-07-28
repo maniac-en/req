@@ -49,7 +49,7 @@ func (v EditCollectionView) Update(msg tea.Msg) (EditCollectionView, tea.Cmd) {
 		v.width = msg.Width
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
-		v.form.SetSize(v.width-4, v.height-8)
+		v.form.SetSize(v.width-50, v.height-8)
 
 	case tea.KeyMsg:
 		if v.submitting {

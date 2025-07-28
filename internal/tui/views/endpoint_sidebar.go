@@ -19,6 +19,7 @@ type EndpointSidebarView struct {
 	initialized      bool
 	selectedIndex    int
 	endpoints        []endpoints.EndpointEntity
+	focused          bool
 }
 
 func NewEndpointSidebarView(endpointsManager *endpoints.EndpointsManager, collection collections.CollectionEntity) EndpointSidebarView {
@@ -26,7 +27,20 @@ func NewEndpointSidebarView(endpointsManager *endpoints.EndpointsManager, collec
 		endpointsManager: endpointsManager,
 		collection:       collection,
 		selectedIndex:    0,
+		focused:          false,
 	}
+}
+
+func (v *EndpointSidebarView) Focus() {
+	v.focused = true
+}
+
+func (v *EndpointSidebarView) Blur() {
+	v.focused = false
+}
+
+func (v EndpointSidebarView) Focused() bool {
+	return v.focused
 }
 
 func (v EndpointSidebarView) Init() tea.Cmd {
@@ -70,12 +84,29 @@ func (v EndpointSidebarView) Update(msg tea.Msg) (EndpointSidebarView, tea.Cmd) 
 		}
 		v.initialized = true
 
+		// Auto-select first endpoint if available
+		if len(msg.endpoints) > 0 {
+			return v, func() tea.Msg {
+				return EndpointSelectedMsg{Endpoint: msg.endpoints[0]}
+			}
+		}
+
 	case endpointsLoadError:
 		v.initialized = true
 
 	case tea.KeyMsg:
 		if v.initialized {
+			// Forward navigation keys to the list even if not explicitly focused
+			oldIndex := v.list.SelectedIndex()
 			v.list, cmd = v.list.Update(msg)
+			newIndex := v.list.SelectedIndex()
+
+			// If the selected index changed, auto-select the new endpoint
+			if oldIndex != newIndex && newIndex >= 0 && newIndex < len(v.endpoints) {
+				return v, func() tea.Msg {
+					return EndpointSelectedMsg{Endpoint: v.endpoints[newIndex]}
+				}
+			}
 		}
 	}
 

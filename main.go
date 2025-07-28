@@ -13,6 +13,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
 	"github.com/maniac-en/req/internal/backend/database"
+	"github.com/maniac-en/req/internal/backend/demo"
 	"github.com/maniac-en/req/internal/backend/endpoints"
 	"github.com/maniac-en/req/internal/backend/history"
 	"github.com/maniac-en/req/internal/backend/http"
@@ -142,7 +143,16 @@ func main() {
 		historyManager,
 	)
 
-	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging"})
+	// populate dummy data for demo
+	demoGenerator := demo.NewDemoGenerator(collectionsManager, endpointsManager)
+	dummyDataCreated, err := demoGenerator.PopulateDummyData(context.Background())
+	if err != nil {
+		log.Error("failed to populate dummy data", "error", err)
+	} else if dummyDataCreated {
+		appContext.SetDummyDataCreated(true)
+	}
+
+	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging", "demo"})
 	log.Debug("configuration loaded", "collections_manager", collectionsManager != nil, "endpoints", endpointsManager != nil, "database", db != nil, "http_manager", httpManager != nil, "history_manager", historyManager != nil)
 	log.Info("application started successfully")
 
