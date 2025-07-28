@@ -46,11 +46,15 @@ jobs:
   format:
     name: Auto-format with gofmt (Linux only)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.repository_owner == github.actor
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -62,8 +66,8 @@ jobs:
           gofmt -w .
           if [ -n "$(git status --porcelain)" ]; then
             echo "Code was not formatted. Committing changes..."
-            git config user.name "github-actions"
-            git config user.email "github-actions@github.com"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
             git add .
             git commit -m "chore: auto-format Go code via gofmt"
             git push
