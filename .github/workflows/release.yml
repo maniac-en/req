@@ -1,0 +1,43 @@
+name: Release on merge of versioned branch into main
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from branch name
+        run: echo "VERSION=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.4'
+
+      - name: Build with version
+        run: go build -ldflags "-X main.Version=${VERSION}" -o req
+
+      - name: Tag main with version
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git fetch --unshallow --tags
+          git tag "${VERSION}"
+          git push origin "${VERSION}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: req
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
