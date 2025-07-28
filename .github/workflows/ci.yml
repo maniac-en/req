@@ -2,13 +2,21 @@ name: Go Build, Test, and Format
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  build-test-format:
-    runs-on: ubuntu-latest
+  build-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: Checkout code
@@ -25,11 +33,30 @@ jobs:
       - name: Run Tests
         run: go test ./...
 
-      - name: Check gofmt
+  format:
+    name: Format on Linux
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # only format on push events (not PRs from forks)
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.4'
+
+      - name: Auto-format code with gofmt and commit changes
         run: |
-          UNFORMATTED=$(gofmt -l .)
-          if [ -n "$UNFORMATTED" ]; then
-            echo "The following files need to be formatted:"
-            echo "$UNFORMATTED"
-            exit 1
+          gofmt -w .
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Code was not formatted. Applying gofmt and committing changes..."
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add .
+            git commit -m "chore: auto-format Go code via gofmt"
+            git push
+          else
+            echo "Code already properly formatted."
           fi
