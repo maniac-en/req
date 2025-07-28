@@ -74,9 +74,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.selectedIndex = m.collectionsView.GetSelectedIndex()
 						m.mode = SelectedCollectionViewMode
 						if m.width > 0 && m.height > 0 {
-							m.selectedCollectionView = views.NewSelectedCollectionViewWithSize(m.ctx.Endpoints, *selectedItem, m.width, m.height)
+							m.selectedCollectionView = views.NewSelectedCollectionViewWithSize(m.ctx.Endpoints, m.ctx.HTTP, *selectedItem, m.width, m.height)
 						} else {
-							m.selectedCollectionView = views.NewSelectedCollectionView(m.ctx.Endpoints, *selectedItem)
+							m.selectedCollectionView = views.NewSelectedCollectionView(m.ctx.Endpoints, m.ctx.HTTP, *selectedItem)
 						}
 						return m, m.selectedCollectionView.Init()
 					} else {
