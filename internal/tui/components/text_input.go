@@ -17,7 +17,7 @@ func NewTextInput(label, placeholder string) TextInput {
 	ti := textinput.New()
 	ti.Placeholder = placeholder
 	ti.Focus()
-	ti.CharLimit = 100
+	ti.CharLimit = 5000 // Allow long content like JSON
 	ti.Width = 50
 
 	return TextInput{
@@ -37,7 +37,20 @@ func (t TextInput) Value() string {
 
 func (t *TextInput) SetWidth(width int) {
 	t.width = width
-	t.textInput.Width = width - len(t.label) - 4 // Account for label and spacing
+	// Account for label, colon, spacing, and border padding
+	containerWidth := width - 12 - 1 - 2 // 12 for label, 1 for colon, 2 for spacing
+	if containerWidth < 15 {
+		containerWidth = 15
+	}
+	
+	// The actual input width inside the container (subtract border and padding)
+	inputWidth := containerWidth - 4 // 2 for border, 2 for padding
+	if inputWidth < 10 {
+		inputWidth = 10
+	}
+	
+	// Ensure the underlying textinput respects the width
+	t.textInput.Width = inputWidth
 }
 
 func (t *TextInput) Focus() {
@@ -67,10 +80,27 @@ func (t TextInput) View() string {
 		Width(12).
 		Align(lipgloss.Right)
 
+	// Create a fixed-width container for the input to prevent overflow
+	containerWidth := t.width - 12 - 1 - 2 // Account for label, colon, spacing
+	if containerWidth < 15 {
+		containerWidth = 15
+	}
+	
+	inputContainer := styles.ListItemStyle.Copy().
+		Width(containerWidth).
+		Height(1).
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(styles.Secondary).
+		Padding(0, 1)
+	
+	if t.textInput.Focused() {
+		inputContainer = inputContainer.BorderForeground(styles.Primary)
+	}
+
 	return lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		labelStyle.Render(t.label+":"),
 		" ",
-		t.textInput.View(),
+		inputContainer.Render(t.textInput.View()),
 	)
 }

@@ -97,18 +97,18 @@ func (v EndpointSidebarView) Update(msg tea.Msg) (EndpointSidebarView, tea.Cmd) 
 	case tea.KeyMsg:
 		if v.initialized {
 			switch msg.String() {
-			case "enter":
-				if selectedEndpoint := v.GetSelectedEndpoint(); selectedEndpoint != nil {
-					return v, func() tea.Msg {
-						return EndpointSelectedMsg{Endpoint: *selectedEndpoint}
-					}
-				}
+			// case "enter":
+			// 	if selectedEndpoint := v.GetSelectedEndpoint(); selectedEndpoint != nil {
+			// 		return v, func() tea.Msg {
+			// 			return EndpointSelectedMsg{Endpoint: *selectedEndpoint}
+			// 		}
+			// 	}
 			default:
 				// Forward navigation keys to the list even if not explicitly focused
 				oldIndex := v.list.SelectedIndex()
 				v.list, cmd = v.list.Update(msg)
 				newIndex := v.list.SelectedIndex()
-				
+
 				// If the selected index changed, auto-select the new endpoint
 				if oldIndex != newIndex && newIndex >= 0 && newIndex < len(v.endpoints) {
 					return v, func() tea.Msg {

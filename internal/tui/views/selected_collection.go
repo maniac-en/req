@@ -10,6 +10,13 @@ import (
 	"github.com/maniac-en/req/internal/tui/styles"
 )
 
+type MainTab int
+
+const (
+	RequestBuilderMainTab MainTab = iota
+	ResponseViewerMainTab
+)
+
 type SelectedCollectionView struct {
 	layout           components.Layout
 	endpointsManager *endpoints.EndpointsManager
@@ -17,6 +24,8 @@ type SelectedCollectionView struct {
 	collection       collections.CollectionEntity
 	sidebar          EndpointSidebarView
 	selectedEndpoint *endpoints.EndpointEntity
+	requestBuilder   RequestBuilder
+	activeMainTab    MainTab
 	width            int
 	height           int
 }
@@ -24,7 +33,7 @@ type SelectedCollectionView struct {
 func NewSelectedCollectionView(endpointsManager *endpoints.EndpointsManager, httpManager *http.HTTPManager, collection collections.CollectionEntity) SelectedCollectionView {
 	sidebar := NewEndpointSidebarView(endpointsManager, collection)
 	sidebar.Focus() // Make sure sidebar starts focused
-	
+
 	return SelectedCollectionView{
 		layout:           components.NewLayout(),
 		endpointsManager: endpointsManager,
@@ -32,6 +41,8 @@ func NewSelectedCollectionView(endpointsManager *endpoints.EndpointsManager, htt
 		collection:       collection,
 		sidebar:          sidebar,
 		selectedEndpoint: nil,
+		requestBuilder:   NewRequestBuilder(),
+		activeMainTab:    RequestBuilderMainTab,
 	}
 }
 
@@ -50,6 +61,9 @@ func NewSelectedCollectionViewWithSize(endpointsManager *endpoints.EndpointsMana
 	sidebar.height = innerHeight
 	sidebar.Focus() // Make sure sidebar starts focused
 
+	requestBuilder := NewRequestBuilder()
+	requestBuilder.SetSize(innerWidth-sidebarWidth-1, innerHeight)
+
 	return SelectedCollectionView{
 		layout:           layout,
 		endpointsManager: endpointsManager,
@@ -57,6 +71,8 @@ func NewSelectedCollectionViewWithSize(endpointsManager *endpoints.EndpointsMana
 		collection:       collection,
 		sidebar:          sidebar,
 		selectedEndpoint: nil,
+		requestBuilder:   requestBuilder,
+		activeMainTab:    RequestBuilderMainTab,
 		width:            width,
 		height:           height,
 	}
@@ -83,24 +99,72 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 
 		v.sidebar.width = sidebarWidth
 		v.sidebar.height = innerHeight
+		v.requestBuilder.SetSize(innerWidth-sidebarWidth-1, innerHeight)
 
 	case tea.KeyMsg:
+		// If request builder is in component editing mode, only handle esc - forward everything else
+		if v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.IsEditingComponent() {
+			if msg.String() == "esc" {
+				// Forward the Esc to request builder to exit editing mode
+				var builderCmd tea.Cmd
+				v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
+				return v, builderCmd
+			}
+			// Forward all other keys to request builder when editing
+			var builderCmd tea.Cmd
+			v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
+			return v, builderCmd
+		}
+		
+		// Normal key handling when not editing
 		switch msg.String() {
 		case "esc", "q":
 			return v, func() tea.Msg { return BackToCollectionsMsg{} }
+		case "1":
+			v.activeMainTab = RequestBuilderMainTab
+			v.requestBuilder.Focus()
+		case "2":
+			v.activeMainTab = ResponseViewerMainTab
+			v.requestBuilder.Blur()
+			// case "enter":
+			// 	// If request builder is active, let it handle Enter first
+			// 	if v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.Focused() {
+			// 		var builderCmd tea.Cmd
+			// 		v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
+			// 		if builderCmd != nil {
+			// 			return v, builderCmd
+			// 		}
+			// 	}
+			// If not handled by request builder, fall through to normal forwarding
 		}
 
 	case EndpointSelectedMsg:
 		// Store the selected endpoint for display
 		v.selectedEndpoint = &msg.Endpoint
+		v.requestBuilder.LoadFromEndpoint(msg.Endpoint)
+		v.requestBuilder.Focus()
+
+	case RequestSendMsg:
+		// TODO: Handle request sending
+		return v, nil
 	}
 
-	// Always forward messages to sidebar for now, but it only handles them when focused
-	v.sidebar, cmd = v.sidebar.Update(msg)
+	// Forward messages to appropriate components (only if not editing)
+	if !(v.activeMainTab == RequestBuilderMainTab && v.requestBuilder.IsEditingComponent()) {
+		v.sidebar, cmd = v.sidebar.Update(msg)
+
+		// Forward to request builder if it's the active tab
+		if v.activeMainTab == RequestBuilderMainTab {
+			var builderCmd tea.Cmd
+			v.requestBuilder, builderCmd = v.requestBuilder.Update(msg)
+			if builderCmd != nil {
+				cmd = builderCmd
+			}
+		}
+	}
 
 	return v, cmd
 }
-
 
 func (v SelectedCollectionView) View() string {
 	title := "Collection: " + v.collection.Name
@@ -110,33 +174,13 @@ func (v SelectedCollectionView) View() string {
 
 	sidebarContent := v.sidebar.View()
 
-	// Simple endpoint information display
+	// Main tab content
 	var mainContent string
 	if v.selectedEndpoint != nil {
-		var lines []string
-		lines = append(lines, "Selected Endpoint:")
-		lines = append(lines, "")
-		lines = append(lines, "Name: "+v.selectedEndpoint.Name)
-		lines = append(lines, "Method: "+v.selectedEndpoint.Method)
-		lines = append(lines, "URL: "+v.selectedEndpoint.Url)
-		
-		if v.selectedEndpoint.Headers != "" {
-			lines = append(lines, "")
-			lines = append(lines, "Headers: "+v.selectedEndpoint.Headers)
-		}
-		
-		if v.selectedEndpoint.QueryParams != "" {
-			lines = append(lines, "")
-			lines = append(lines, "Query Params: "+v.selectedEndpoint.QueryParams)
-		}
-		
-		if v.selectedEndpoint.RequestBody != "" {
-			lines = append(lines, "")
-			lines = append(lines, "Request Body:")
-			lines = append(lines, v.selectedEndpoint.RequestBody)
-		}
-		
-		mainContent = lipgloss.JoinVertical(lipgloss.Left, lines...)
+		// Show main tabs
+		tabsContent := v.renderMainTabs()
+		tabContent := v.renderMainTabContent()
+		mainContent = lipgloss.JoinVertical(lipgloss.Left, tabsContent, "", tabContent)
 	} else {
 		// Check if there are no endpoints at all
 		if len(v.sidebar.endpoints) == 0 {
@@ -174,13 +218,51 @@ func (v SelectedCollectionView) View() string {
 		mainStyle.Render(mainContent),
 	)
 
-	instructions := "↑↓: navigate endpoints • esc/q: back"
+	instructions := "↑↓: navigate endpoints • 1: request • 2: response • enter: edit • esc: stop editing • r: send • esc/q: back"
 
 	return v.layout.FullView(
 		title,
 		content,
 		instructions,
 	)
+}
+
+func (v SelectedCollectionView) renderMainTabs() string {
+	tabs := []string{"Request Builder", "Response Viewer"}
+	var renderedTabs []string
+
+	for i, tab := range tabs {
+		tabStyle := styles.ListItemStyle.Copy().
+			Padding(0, 3).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(styles.Secondary)
+
+		if MainTab(i) == v.activeMainTab {
+			tabStyle = tabStyle.
+				Background(styles.Primary).
+				Foreground(styles.TextPrimary).
+				Bold(true)
+		}
+
+		renderedTabs = append(renderedTabs, tabStyle.Render(tab))
+	}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+}
+
+func (v SelectedCollectionView) renderMainTabContent() string {
+	switch v.activeMainTab {
+	case RequestBuilderMainTab:
+		return v.requestBuilder.View()
+	case ResponseViewerMainTab:
+		return styles.ListItemStyle.Copy().
+			Width(v.width/2).
+			Height(v.height/2).
+			Align(lipgloss.Center, lipgloss.Center).
+			Render("Response viewer coming soon...")
+	default:
+		return ""
+	}
 }
 
 // Message types for selected collection view
