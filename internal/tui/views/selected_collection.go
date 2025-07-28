@@ -219,7 +219,10 @@ func (v SelectedCollectionView) View() string {
 
 	instructions := "↑↓: navigate endpoints • 1: request • 2: response • enter: edit • esc: stop editing • r: send • esc/q: back"
 	if v.notification != "" {
-		instructions = v.notification
+		instructions = lipgloss.NewStyle().
+			Foreground(styles.Warning).
+			Bold(true).
+			Render(v.notification)
 	}
 
 	return v.layout.FullView(
@@ -261,7 +264,7 @@ func (v SelectedCollectionView) renderMainTabContent() string {
 			Width(v.width/2).
 			Height(v.height/2).
 			Align(lipgloss.Center, lipgloss.Center).
-			Render("Response viewer coming soon...")
+			Render("Yet to be implemented...")
 	default:
 		return ""
 	}
