@@ -3,11 +3,9 @@ package log
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"os"
 	"sync"
-	"time"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -101,11 +99,6 @@ func Error(msg string, args ...any) {
 func Fatal(msg string, args ...any) {
 	Global().Error(msg, args...)
 	os.Exit(1)
-}
-
-// Request ID utilities
-func GenerateRequestID() string {
-	return fmt.Sprintf("req_%d", time.Now().UnixNano())
 }
 
 type contextKey string
