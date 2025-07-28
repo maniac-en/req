@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/backend/collections"
 	"github.com/maniac-en/req/internal/backend/crud"
-	"github.com/maniac-en/req/internal/log"
 	"github.com/maniac-en/req/internal/tui/components"
 	"github.com/maniac-en/req/internal/tui/styles"
 )
