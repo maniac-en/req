@@ -182,13 +182,6 @@ func (rb RequestBuilder) Update(msg tea.Msg) (RequestBuilder, tea.Cmd) {
 					rb.queryEditor.Focus()
 				}
 			}
-		// case "r":
-		// 	// Send request - only when not editing a component
-		// 	if !rb.componentFocused {
-		// 		return rb, func() tea.Msg {
-		// 			return RequestSendMsg{Method: rb.method, URL: rb.url, Body: rb.bodyInput.Value()}
-		// 		}
-		// 	}
 		case "esc":
 			// Exit component editing mode
 			if rb.componentFocused {
