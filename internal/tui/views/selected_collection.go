@@ -27,6 +27,31 @@ func NewSelectedCollectionView(endpointsManager *endpoints.EndpointsManager, col
 	}
 }
 
+func NewSelectedCollectionViewWithSize(endpointsManager *endpoints.EndpointsManager, collection collections.CollectionEntity, width, height int) SelectedCollectionView {
+	layout := components.NewLayout()
+	layout.SetSize(width, height)
+
+	// Calculate sidebar dimensions immediately
+	windowWidth := int(float64(width) * 0.85)
+	windowHeight := int(float64(height) * 0.8)
+	innerWidth := windowWidth - 4
+	innerHeight := windowHeight - 6
+	sidebarWidth := innerWidth / 4 // Smaller sidebar
+
+	sidebar := NewEndpointSidebarView(endpointsManager, collection)
+	sidebar.width = sidebarWidth
+	sidebar.height = innerHeight
+
+	return SelectedCollectionView{
+		layout:           layout,
+		endpointsManager: endpointsManager,
+		collection:       collection,
+		sidebar:          sidebar,
+		width:            width,
+		height:           height,
+	}
+}
+
 func (v SelectedCollectionView) Init() tea.Cmd {
 	return v.sidebar.Init()
 }
@@ -40,10 +65,15 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
 
-		sidebarWidth := v.width / 3
-		v.sidebar.width = sidebarWidth
-		v.sidebar.height = v.height - 4
+		// Calculate dimensions for sidebar (consistent with View method)
+		windowWidth := int(float64(v.width) * 0.85)
+		windowHeight := int(float64(v.height) * 0.8)
+		innerWidth := windowWidth - 4
+		innerHeight := windowHeight - 6
+		sidebarWidth := innerWidth / 4 // Smaller sidebar
 
+		v.sidebar.width = sidebarWidth
+		v.sidebar.height = innerHeight
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -51,7 +81,6 @@ func (v SelectedCollectionView) Update(msg tea.Msg) (SelectedCollectionView, tea
 			return v, func() tea.Msg { return BackToCollectionsMsg{} }
 		}
 	}
-
 
 	// Forward messages to sidebar
 	v.sidebar, cmd = v.sidebar.Update(msg)
@@ -64,13 +93,32 @@ func (v SelectedCollectionView) View() string {
 
 	sidebarContent := v.sidebar.View()
 	mainContent := "Endpoint details will be displayed here"
-	sidebarStyle := styles.SidebarStyle.Copy().
-		Width(v.width / 3).
-		Height(v.height - 4)
 
+	// Use layout's dimensions for proper sizing within bordered window
+	if v.width < 10 || v.height < 10 {
+		// Only show loading for very small dimensions, not zero
+		return v.layout.FullView(title, sidebarContent, "esc/q: back to collections")
+	}
+
+	// Calculate dimensions for split layout (accounting for border in FullView)
+	windowWidth := int(float64(v.width) * 0.85)
+	windowHeight := int(float64(v.height) * 0.8)
+	innerWidth := windowWidth
+	innerHeight := windowHeight - 6 // Account for header only (footer outside)
+
+	sidebarWidth := innerWidth / 4 // Smaller sidebar (1/4 instead of 1/3)
+	mainWidth := innerWidth - sidebarWidth - 1
+
+	// Style the sidebar - simple styling to fit within bordered window
+	sidebarStyle := styles.SidebarStyle.Copy().
+		Width(sidebarWidth).
+		Height(innerHeight)
+
+	// Style the main content area - simple styling
 	mainStyle := styles.MainContentStyle.Copy().
-		Width((v.width * 2 / 3) - 1).
-		Height(v.height - 4)
+		Width(mainWidth).
+		Height(innerHeight).
+		Align(lipgloss.Center, lipgloss.Center)
 
 	content := lipgloss.JoinHorizontal(
 		lipgloss.Top,

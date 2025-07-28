@@ -29,8 +29,8 @@ func NewPaginatedList(items []ListItem, title string) PaginatedList {
 		listItems[i] = item
 	}
 
-	const defaultWidth = 20
-	const defaultHeight = 14
+	const defaultWidth = 120  // Wide enough to avoid title truncation
+	const defaultHeight = 20
 
 	l := list.New(listItems, paginatedItemDelegate{}, defaultWidth, defaultHeight)
 	l.Title = title

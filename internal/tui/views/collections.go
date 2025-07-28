@@ -31,6 +31,17 @@ func NewCollectionsView(collectionsManager *collections.CollectionsManager) Coll
 	}
 }
 
+func NewCollectionsViewWithSize(collectionsManager *collections.CollectionsManager, width, height int) CollectionsView {
+	layout := components.NewLayout()
+	layout.SetSize(width, height)
+	return CollectionsView{
+		layout:             layout,
+		collectionsManager: collectionsManager,
+		width:              width,
+		height:             height,
+	}
+}
+
 func (v CollectionsView) Init() tea.Cmd {
 	return v.loadCollections
 }
@@ -88,10 +99,7 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.height = msg.Height
 		v.layout.SetSize(v.width, v.height)
 
-		if v.initialized {
-			contentHeight := v.height - 4
-			v.list.SetSize(v.width-4, contentHeight)
-		}
+		// Let the FullView method handle sizing
 
 	case collectionsLoaded:
 		items := make([]components.ListItem, len(msg.collections))
@@ -103,14 +111,11 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 		v.pageSize = msg.pageSize
 		v.pagination = msg.pagination
 
-		title := fmt.Sprintf("Collections (Page %d/%d)", v.currentPage, v.pagination.TotalPages)
+		title := fmt.Sprintf("Page %d / %d", v.currentPage, v.pagination.TotalPages)
 		v.list = components.NewPaginatedList(items, title)
 		v.list.SetIndex(v.selectedIndex)
 
-		if v.width > 0 && v.height > 0 {
-			contentHeight := v.height - 4
-			v.list.SetSize(v.width-4, contentHeight)
-		}
+		// Let the FullView method handle sizing
 		v.initialized = true
 
 	case collectionsLoadError:
@@ -155,6 +160,10 @@ func (v CollectionsView) Update(msg tea.Msg) (CollectionsView, tea.Cmd) {
 
 func (v CollectionsView) IsFiltering() bool {
 	return v.initialized && v.list.IsFiltering()
+}
+
+func (v CollectionsView) IsInitialized() bool {
+	return v.initialized
 }
 
 func (v *CollectionsView) SetSelectedIndex(index int) {

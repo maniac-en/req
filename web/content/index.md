@@ -1,4 +1,4 @@
-# req - Terminal API Client
+# Req - Test APIs with Terminal Velocity
 
 > **Note**: This page is not up to date and serves as a boilerplate for the blog setup.
 

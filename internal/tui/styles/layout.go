@@ -37,5 +37,5 @@ var (
 			BorderForeground(Secondary)
 
 	MainContentStyle = lipgloss.NewStyle().
-			PaddingLeft(2)
+				PaddingLeft(2)
 )
