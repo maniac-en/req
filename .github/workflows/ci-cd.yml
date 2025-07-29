@@ -46,7 +46,7 @@ jobs:
   format:
     name: Auto-format with gofmt (Linux only)
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]'
     permissions:
       contents: write
 

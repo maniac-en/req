@@ -1,43 +1,103 @@
-name: Release on merge of versioned branch into main
+name: Release on Git Tag
 
 on:
-  pull_request:
-    types: [closed]
-    branches:
-      - main
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   release:
-    if: github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'v')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    strategy:
+      matrix:
+        goos: [linux, darwin, windows]
+        goarch: [amd64, arm64]
+        exclude:
+          - goos: windows
+            goarch: arm64
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Extract version from branch name
-        run: echo "VERSION=${GITHUB_HEAD_REF}" >> $GITHUB_ENV
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.4'
 
-      - name: Build with version
-        run: go build -ldflags "-X main.Version=${VERSION}" -o req
-
-      - name: Tag main with version
+      - name: Build binary for ${{ matrix.goos }}-${{ matrix.goarch }}
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git fetch --unshallow --tags
-          git tag "${VERSION}"
-          git push origin "${VERSION}"
+          BINARY_NAME="req-${{ env.VERSION }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
+          go build -ldflags "-X main.Version=${{ env.VERSION }}" -o "${BINARY_NAME}" .
+          echo "BINARY_NAME=${BINARY_NAME}" >> $GITHUB_ENV
+
+      - name: Upload binary as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.BINARY_NAME }}
+          path: ${{ env.BINARY_NAME }}
+
+  create-release:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
-          files: req
+          name: "Req ${{ env.VERSION }}"
+          body: |
+            A terminal-based API client built for the Boot.dev Hackathon 2025.
+            
+            **Installation:**
+            ```bash
+            go install github.com/maniac-en/req@${{ env.VERSION }}
+            ```
+            
+            **Prebuilt binaries:**
+            - Linux: `req-${{ env.VERSION }}-linux-amd64`, `req-${{ env.VERSION }}-linux-arm64`  
+            - macOS: `req-${{ env.VERSION }}-darwin-amd64`, `req-${{ env.VERSION }}-darwin-arm64`
+            - Windows: `req-${{ env.VERSION }}-windows-amd64.exe`
+            
+            **Usage:** Run `req` in your terminal
+            
+            **Breaking Changes:**
+            Database schema has been updated. Please remove your existing database:
+            ```bash
+            # Linux/macOS
+            rm ~/.cache/req/app.db
+            
+            # Windows
+            del %LOCALAPPDATA%\req\app.db
+            ```
+            
+            **Note:** This is early development software. Core HTTP execution features are still in progress.
+            
+            Full changelog: https://github.com/maniac-en/req/commits/${{ env.VERSION }}
+          files: ./binaries/**/*
+          draft: false
+          prerelease: ${{ contains(env.VERSION, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

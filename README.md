@@ -1,6 +1,6 @@
 # Req - Test APIs with Terminal Velocity
 
-[![tests](https://github.com/maniac-en/req/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/maniac-en/req/actions/workflows/go.yml)
+[![tests](https://github.com/maniac-en/req/actions/workflows/ci-cd.yml/badge.svg?branch=main)](https://github.com/maniac-en/req/actions/workflows/ci-cd.yml)
 ![GitHub repo](https://img.shields.io/badge/built%20at-Boot.dev%20Hackathon-blueviolet)
 
 ## About
@@ -16,15 +16,15 @@ Read more about `req` over here -
 
 ## Installation
 
-### You can install `req` using `go install`:
+Install `req` using `go install`:
 
-To install a specific release
-
-```
+```bash
+# Install the latest stable release
 go install github.com/maniac-en/req@latest
-```
 
-Replace `latest` with the specific version you want.
+# Or install a specific version (e.g., v0.1.0)
+go install github.com/maniac-en/req@v0.1.0
+```
 
 ### Requirements
 
