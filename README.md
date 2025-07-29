@@ -6,10 +6,13 @@
 ## About
 
 `req` is a lightweight, terminal-based API client built for the
-[Boot.dev Hackathon 2025](https://github.com/maniac-en/req?tab=License-1-ov-file).
-It features a fast and minimal text user interface and lets you create, send,
-and inspect HTTP requests interactively from the command line. It is ideal for
-testing APIs without leaving your terminal.
+[Boot.dev Hackathon 2025](https://blog.boot.dev/news/hackathon-2025/#12-honorable-mentions-no-prizes-sorry), where it received an **honorable mention**.
+**Current Status**: Early development (alpha). Core HTTP execution features are still in progress.
+
+The goal is to provide a fast, minimal terminal interface for creating, sending,
+and inspecting HTTP requests interactively from the command line.
+
+> The app works completely offline with no external dependencies required.
 
 Read more about `req` over here -
 [Announcement Blog](https://maniac-en.github.io/req/)
@@ -52,7 +55,7 @@ req
 ## License
 
 This project is licensed under the
-[MIT License](https://github.com/maniac-en/req?tab=License-1-ov-file).
+[MIT License](https://github.com/maniac-en/req/blob/main/LICENSE).
 
 ```
 1. Mudassir Bilal (mailto:mughalmudassir966@gmail.com)
