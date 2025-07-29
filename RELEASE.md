@@ -99,9 +99,10 @@ The release workflow automatically builds:
 - `req-v0.1.0-alpha.2-windows-amd64.exe`
 
 ### Release Notes
-Automatically generated with:
+Generated from template in `.github/workflows/release.yml` including:
 - Project description
 - Installation instructions (`go install` and binary downloads)
+- Breaking change warnings (database cleanup instructions)
 - Usage information
 - Development stage disclaimer
 - Link to full changelog
@@ -134,7 +135,7 @@ No fixed schedule. Releases are created when:
 - Important bug fixes are ready
 - Milestone requirements are met
 
-For hackathon timeline, aim for `v0.1.0-alpha.x` releases as features are completed.
+Release `v0.1.0-alpha.x` versions as features are completed and tested.
 
 ## Rollback Process
 
