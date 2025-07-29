@@ -13,16 +13,9 @@
     <article>
         <div><img src="images/banner.png" alt="Req Banner" style="width: 100%; max-width: 800px; margin-bottom: 20px;">
             <h1>Req - Test APIs with Terminal Velocity</h1>
-            <p>A terminal-based API client built for the <a href="https://blog.boot.dev/news/hackathon-2025/">Boot.dev
-                    Hackathon 2025</a>.</p>
-            <h2>Features</h2>
-            <ul>
-                <li>Terminal user interface with beautiful TUI</li>
-                <li>Request collections and organization</li>
-                <li>Demo data generation with realistic APIs</li>
-                <li>Request builder with tabs for body, headers, query params</li>
-                <li>Production-ready logging system</li>
-            </ul>
+            <p>A terminal-based API client built for the <a href="https://blog.boot.dev/news/hackathon-2025/#12-honorable-mentions-no-prizes-sorry">Boot.dev
+                    Hackathon 2025</a>, where it received an <b>honorable mention</b>.</p>
+            <p><b>Current Status:</b> Early development (alpha). Core HTTP execution features are still in progress.</p>
             <h2>Tech Stack</h2>
             <p>The project uses:</p>
             <ol>
@@ -45,27 +38,29 @@ req
             </pre><video src="/req/demo.mp4" controls style="width: 100%; max-width: 800px; margin: 20px 0;"></video>
             <h2>What's Implemented</h2>
             <ul>
-                <li>Collections CRUD operations (create, edit, delete, navigate)</li>
-                <li>Request builder interface with tabbed editing</li>
-                <li>Endpoint browsing with sidebar navigation</li>
-                <li>Demo data generation (JSONPlaceholder, ReqRes, HTTPBin APIs)</li>
-                <li>Beautiful warm color scheme with vim-like navigation</li>
-                <li>Pagination and real-time search filtering</li>
+                <li>TUI interface with collections and endpoints navigation</li>
+                <li>SQLite-based storage with migrations</li>
+                <li>Basic request builder interface</li>
             </ul>
             <h2>Coming Soon</h2>
             <ul>
                 <li>HTTP request execution (core feature)</li>
                 <li>Response viewer with syntax highlighting</li>
-                <li>Endpoint management (add/edit endpoints)</li>
+                <li>Complete endpoint management</li>
                 <li>Environment variables support</li>
-                <li>Export/import functionality</li>
             </ul>
             <h2>Try It Out</h2>
-            <p><b>GitHub</b>: https://github.com/maniac-en/req<br>
-                <b>Installation</b>: <code>go install github.com/maniac-en/req@latest</code> or <code>go install github.com/maniac-en/req@v0.1.0</code><br>
-                <b>Usage</b>: Just run <code>req</code> in your terminal!
-            </p>
-            <p>The app works completely offline with no external dependencies required.</p>
+            
+            <p><strong>GitHub Repository:</strong><br>
+            <a href="https://github.com/maniac-en/req">https://github.com/maniac-en/req</a></p>
+            
+            <p><strong>Installation:</strong></p>
+            <pre>go install github.com/maniac-en/req@latest</pre>
+            
+            <p><strong>Usage:</strong></p>
+            <pre>req</pre>
+            
+            <p><em>Note: The app works completely offline with no external dependencies required.</em></p>
             <p>---</p>
             <p>This blog is built with ❤️ using <a href="https://github.com/maniac-en/pyssg">pyssg</a> - A guided
                 learning project at <a href="https://www.boot.dev/courses/build-static-site-generator">boot.dev</a></p>
