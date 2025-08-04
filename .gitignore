@@ -38,3 +38,9 @@ testdata/
 .pyssg/
 __pycache__/
 *.pyc
+
+# build stuff
+build/
+
+# old tui
+internal/old_tui/

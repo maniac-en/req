@@ -136,12 +136,12 @@ func main() {
 	historyManager := history.NewHistoryManager(db)
 
 	// create clean context for dependency injection
-	appContext := app.NewContext(
-		collectionsManager,
-		endpointsManager,
-		httpManager,
-		historyManager,
-	)
+	// appContext := app.NewContext(
+	// 	collectionsManager,
+	// 	endpointsManager,
+	// 	httpManager,
+	// 	historyManager,
+	// )
 
 	// populate dummy data for demo
 	demoGenerator := demo.NewDemoGenerator(collectionsManager, endpointsManager)
@@ -149,7 +149,7 @@ func main() {
 	if err != nil {
 		log.Error("failed to populate dummy data", "error", err)
 	} else if dummyDataCreated {
-		appContext.SetDummyDataCreated(true)
+		// appContext.SetDummyDataCreated(true)
 	}
 
 	log.Info("application initialized", "components", []string{"database", "collections", "endpoints", "http", "history", "logging", "demo"})
@@ -157,7 +157,7 @@ func main() {
 	log.Info("application started successfully")
 
 	// Entry point for UI
-	program := tea.NewProgram(app.NewModel(appContext), tea.WithAltScreen())
+	program := tea.NewProgram(app.NewAppModel(), tea.WithAltScreen())
 	if _, err := program.Run(); err != nil {
 		log.Fatal("Fatal error:", err)
 	}
