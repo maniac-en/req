@@ -54,7 +54,14 @@ func (c CollectionsView) OnBlur() {
 }
 
 func NewCollectionsView(collManager *collections.CollectionsManager) *CollectionsView {
-	config := defaultListConfig[string]()
+	config := defaultListConfig[string, collections.CollectionEntity]()
+	config.CrudOps = optionsProvider.Crud[collections.CollectionEntity]{
+		Create: collManager.Create,
+		Read:   collManager.Read,
+		Update: collManager.Update,
+		Delete: collManager.Delete,
+		List:   collManager.List,
+	}
 	return &CollectionsView{
 		list: optionsProvider.NewOptionsProvider(config),
 	}

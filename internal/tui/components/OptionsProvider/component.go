@@ -3,7 +3,6 @@ package optionsProvider
 import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type OptionsProvider struct {
@@ -33,12 +32,13 @@ func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		o.height = msg.Height
 		o.width = msg.Width
+		o.list.SetSize(o.list.Width(), o.height)
 	}
 	return o, nil
 }
 
 func (o OptionsProvider) View() string {
-	return lipgloss.NewStyle().Height(o.height).Width(o.width).Align(lipgloss.Center, lipgloss.Center).Render("Hello world from select")
+	return o.list.View()
 }
 
 func (o OptionsProvider) OnFocus() {
@@ -49,14 +49,15 @@ func (o OptionsProvider) OnBlur() {
 
 }
 
-func initList[T any](config *ListConfig[T]) list.Model {
+func initList[T, C any](config *ListConfig[T, C]) list.Model {
 
 	// items := config.ItemMapper(config.Items)
 
-	list := list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0)
+	list := list.New([]list.Item{}, list.NewDefaultDelegate(), 30, 0)
 
 	// list configuration
 	list.SetFilteringEnabled(config.FilteringEnabled)
+	list.SetShowStatusBar(config.ShowStatusBar)
 	list.SetShowPagination(config.ShowPagination)
 	list.SetShowHelp(config.ShowHelp)
 	list.SetShowTitle(config.ShowTitle)
@@ -66,7 +67,7 @@ func initList[T any](config *ListConfig[T]) list.Model {
 	return list
 }
 
-func NewOptionsProvider[T any](config *ListConfig[T]) OptionsProvider {
+func NewOptionsProvider[T, C any](config *ListConfig[T, C]) OptionsProvider {
 	return OptionsProvider{
 		list: initList(config),
 		// onSelectAction: config.OnSelectAction,

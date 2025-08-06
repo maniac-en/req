@@ -6,6 +6,10 @@ SELECT * FROM collections
 ORDER BY created_at DESC
 LIMIT ? OFFSET ?;
 
+-- name: GetCollections :many
+SELECT * FROM collections
+ORDER BY created_at DESC;
+
 -- name: CountCollections :one
 SELECT COUNT(*) FROM collections;
 

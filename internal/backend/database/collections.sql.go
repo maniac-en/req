@@ -63,6 +63,39 @@ func (q *Queries) GetCollection(ctx context.Context, id int64) (Collection, erro
 	return i, err
 }
 
+const getCollections = `-- name: GetCollections :many
+SELECT id, name, created_at, updated_at FROM collections
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetCollections(ctx context.Context) ([]Collection, error) {
+	rows, err := q.db.QueryContext(ctx, getCollections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Collection
+	for rows.Next() {
+		var i Collection
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getCollectionsPaginated = `-- name: GetCollectionsPaginated :many
 SELECT id, name, created_at, updated_at FROM collections
 ORDER BY created_at DESC
