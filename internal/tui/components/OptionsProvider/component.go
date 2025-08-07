@@ -1,6 +1,8 @@
 package optionsProvider
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -13,28 +15,40 @@ type OptionsProvider struct {
 }
 
 type Option struct {
-	title       string
-	value       string
-	description string
+	Name    string
+	ID      int64
+	Subtext string
 }
 
-func (o Option) Title() string       { return o.title }
-func (o Option) Description() string { return o.description }
-func (o Option) Value() string       { return o.value }
-func (o Option) FilterValue() string { return o.title }
+func (o Option) Title() string       { return o.Name }
+func (o Option) Description() string { return o.Subtext }
+func (o Option) Value() int64        { return o.ID }
+func (o Option) FilterValue() string { return o.Name }
 
 func (o OptionsProvider) Init() tea.Cmd {
 	return nil
 }
 
 func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		o.height = msg.Height
 		o.width = msg.Width
 		o.list.SetSize(o.list.Width(), o.height)
+	case tea.KeyMsg:
+
+		o.list, cmd = o.list.Update(msg)
+		cmds = append(cmds, cmd)
+
+		switch msg.String() {
+
+		default:
+		}
+
 	}
-	return o, nil
+	return o, tea.Batch(cmds...)
 }
 
 func (o OptionsProvider) View() string {
@@ -49,11 +63,21 @@ func (o OptionsProvider) OnBlur() {
 
 }
 
-func initList[T, C any](config *ListConfig[T, C]) list.Model {
+func (o OptionsProvider) GetSelected() Option {
+	return o.list.SelectedItem().(Option)
+}
 
-	// items := config.ItemMapper(config.Items)
+func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
-	list := list.New([]list.Item{}, list.NewDefaultDelegate(), 30, 0)
+	rawItems, err := config.CrudOps.List(context.Background())
+
+	if err != nil {
+		rawItems = []T{}
+	}
+
+	items := config.ItemMapper(rawItems)
+
+	list := list.New(items, list.NewDefaultDelegate(), 30, 30)
 
 	// list configuration
 	list.SetFilteringEnabled(config.FilteringEnabled)
@@ -67,7 +91,7 @@ func initList[T, C any](config *ListConfig[T, C]) list.Model {
 	return list
 }
 
-func NewOptionsProvider[T, C any](config *ListConfig[T, C]) OptionsProvider {
+func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider {
 	return OptionsProvider{
 		list: initList(config),
 		// onSelectAction: config.OnSelectAction,

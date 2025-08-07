@@ -4,8 +4,8 @@ import (
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
 )
 
-func defaultListConfig[T, C any]() *optionsProvider.ListConfig[T, C] {
-	config := optionsProvider.ListConfig[T, C]{
+func defaultListConfig[T, U any]() *optionsProvider.ListConfig[T, U] {
+	config := optionsProvider.ListConfig[T, U]{
 		ShowPagination:   false,
 		ShowStatusBar:    false,
 		ShowHelp:         false,

@@ -3,9 +3,9 @@ package styles
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	FooterNameBG      = lipgloss.Color("#1a1a1a")
-	FooterNameFGFrom  = lipgloss.Color("#41A0AE")
-	FooterNameFGTo    = lipgloss.Color("#77F07F")
-	Accent            = lipgloss.Color("#77F07F")
-	HeadingForeground = lipgloss.Color("#000000")
+	footerNameBG      = lipgloss.Color("#1a1a1a")
+	footerNameFGFrom  = lipgloss.Color("#41A0AE")
+	footerNameFGTo    = lipgloss.Color("#77F07F")
+	accent            = lipgloss.Color("#77F07F")
+	headingForeground = lipgloss.Color("#000000")
 )

@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func GradientText(text string, startColor, endColor lipgloss.Color, base, additional lipgloss.Style) string {
+func gradientText(text string, startColor, endColor lipgloss.Color, base, additional lipgloss.Style) string {
 	n := len(text)
 	result := ""
 
@@ -36,4 +36,8 @@ func hexToRGB(hex string) (int, int, int) {
 	var r, g, b int
 	fmt.Sscanf(hex, "#%02x%02x%02x", &r, &g, &b)
 	return r, g, b
+}
+
+func ApplyGradientToFooter(text string) string {
+	return gradientText("REQ", footerNameFGFrom, footerNameFGTo, footerNameStyle, footerNameBGStyle)
 }

@@ -36,12 +36,17 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.width = msg.Width
 		a.Views[a.focusedView], cmd = a.Views[a.focusedView].Update(tea.WindowSizeMsg{Height: a.AvailableHeight(), Width: msg.Width})
 		cmds = append(cmds, cmd)
+		return a, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
 			return a, tea.Quit
 		}
 	}
+
+	a.Views[a.focusedView], cmd = a.Views[a.focusedView].Update(msg)
+	cmds = append(cmds, cmd)
+
 	return a, tea.Batch(cmds...)
 }
 
@@ -73,9 +78,9 @@ func (a AppModel) Header() string {
 }
 
 func (a AppModel) Footer() string {
-	name := styles.GradientText("REQ", styles.FooterNameFGFrom, styles.FooterNameFGTo, styles.FooterNameStyle, styles.FooterNameBGStyle)
+	name := styles.ApplyGradientToFooter("REQ")
 	footerText := styles.FooterSegmentStyle.Render(a.Views[a.focusedView].GetFooterSegment())
-	version := styles.FooterVersionStyle.Width(a.width - lipgloss.Width(name) - lipgloss.Width(footerText)).Render("v0.1.0-alpha2")
+	version := styles.FooterVersionStyle.Width(a.width - lipgloss.Width(name) - lipgloss.Width(footerText)).Render("v0.1.0-alpha.2")
 	return lipgloss.JoinHorizontal(lipgloss.Left, name, footerText, version)
 }
 
