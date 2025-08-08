@@ -3,15 +3,27 @@ package optionsProvider
 import (
 	"context"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/tui/keybinds"
+)
+
+type focusedComp string
+
+const (
+	listComponent = "list"
+	textComponent = "text"
 )
 
 type OptionsProvider struct {
 	list           list.Model
+	input          OptionsInput
 	onSelectAction tea.Msg
 	width          int
 	height         int
+	focused        focusedComp
 }
 
 type Option struct {
@@ -38,25 +50,38 @@ func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
 		o.width = msg.Width
 		o.list.SetSize(o.list.Width(), o.height)
 	case tea.KeyMsg:
-
-		o.list, cmd = o.list.Update(msg)
-		cmds = append(cmds, cmd)
-
-		switch msg.String() {
-
-		default:
+		switch o.focused {
+		case listComponent:
+			if !o.IsFiltering() {
+				switch {
+				case key.Matches(msg, keybinds.Keys.InsertItem):
+					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
+					o.input.OnFocus()
+					o.focused = textComponent
+					return o, tea.Batch(cmds...)
+				}
+			}
 		}
 
 	}
+	switch o.focused {
+	case listComponent:
+		o.list, cmd = o.list.Update(msg)
+	case textComponent:
+		o.input, cmd = o.input.Update(msg)
+	}
+	cmds = append(cmds, cmd)
 	return o, tea.Batch(cmds...)
 }
 
 func (o OptionsProvider) View() string {
+	if o.focused == textComponent {
+		return lipgloss.JoinVertical(lipgloss.Left, o.list.View(), o.input.View())
+	}
 	return o.list.View()
 }
 
-func (o OptionsProvider) OnFocus() {
-
+func (o *OptionsProvider) OnFocus() {
 }
 
 func (o OptionsProvider) OnBlur() {
@@ -65,6 +90,10 @@ func (o OptionsProvider) OnBlur() {
 
 func (o OptionsProvider) GetSelected() Option {
 	return o.list.SelectedItem().(Option)
+}
+
+func (o OptionsProvider) IsFiltering() bool {
+	return o.list.FilterState() == list.Filtering
 }
 
 func initList[T, U any](config *ListConfig[T, U]) list.Model {
@@ -77,7 +106,7 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
 	items := config.ItemMapper(rawItems)
 
-	list := list.New(items, list.NewDefaultDelegate(), 30, 30)
+	list := list.New(items, config.Delegate, 30, 30)
 
 	// list configuration
 	list.SetFilteringEnabled(config.FilteringEnabled)
@@ -93,7 +122,9 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
 func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider {
 	return OptionsProvider{
-		list: initList(config),
+		list:    initList(config),
+		focused: listComponent,
+		input:   NewOptionsInput(),
 		// onSelectAction: config.OnSelectAction,
 	}
 }
