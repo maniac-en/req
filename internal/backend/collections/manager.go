@@ -100,7 +100,14 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 	collections, err := c.DB.GetCollections(ctx)
 	collectionsEntity := []CollectionEntity{}
 	for _, collection := range collections {
-		collectionsEntity = append(collectionsEntity, CollectionEntity{Collection: collection})
+		collectionsEntity = append(collectionsEntity, CollectionEntity{Collection: database.Collection{
+			ID:        collection.ID,
+			Name:      collection.Name,
+			CreatedAt: collection.CreatedAt,
+			UpdatedAt: collection.UpdatedAt,
+		},
+			EndpointCount: int(collection.EndpointCount),
+		})
 	}
 	if err != nil {
 		return nil, err

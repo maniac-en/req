@@ -1,6 +1,8 @@
 package views
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
@@ -63,7 +65,7 @@ func itemMapper(items []collections.CollectionEntity) []list.Item {
 	for i, item := range items {
 		newOpt := optionsProvider.Option{
 			Name:    item.GetName(),
-			Subtext: "Sample",
+			Subtext: fmt.Sprintf("%d endpoints", item.GetEnpointCount()),
 			ID:      item.GetID(),
 		}
 		opts[i] = newOpt
