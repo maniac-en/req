@@ -24,6 +24,7 @@ type OptionsProvider[T, U any] struct {
 	list           list.Model
 	input          input.OptionsInput
 	onSelectAction tea.Msg
+	keys           *keybinds.ListKeyMap
 	width          int
 	height         int
 	focused        focusedComp
@@ -59,14 +60,14 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 		case listComponent:
 			if !o.IsFiltering() {
 				switch {
-				case key.Matches(msg, keybinds.Keys.InsertItem):
+				case key.Matches(msg, o.keys.AddItem):
 					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
 					o.input.OnFocus()
 					o.focused = textComponent
 					return o, tea.Batch(cmds...)
-				case key.Matches(msg, keybinds.Keys.Remove):
+				case key.Matches(msg, o.keys.DeleteItem):
 					return o, func() tea.Msg { return messages.DeleteItem{ItemID: int64(o.GetSelected().ID)} }
-				case key.Matches(msg, keybinds.Keys.EditItem):
+				case key.Matches(msg, o.keys.EditItem):
 					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
 					o.input.SetInput(o.GetSelected().Name)
 					o.input.OnFocus(o.GetSelected().ID)
@@ -144,8 +145,7 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 	list.SetShowPagination(config.ShowPagination)
 	list.SetShowHelp(config.ShowHelp)
 	list.SetShowTitle(config.ShowTitle)
-
-	// list.KeyMap = config.KeyMap
+	list.KeyMap = config.KeyMap
 
 	return list
 }
@@ -165,6 +165,7 @@ func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U
 		input:      input.NewOptionsInput(&inputConfig),
 		getItems:   config.GetItemsFunc,
 		itemMapper: config.ItemMapper,
+		keys:       config.AdditionalKeymaps,
 		// onSelectAction: config.OnSelectAction,
 	}
 }

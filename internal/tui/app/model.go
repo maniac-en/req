@@ -3,8 +3,11 @@ package app
 import (
 	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/styles"
 	"github.com/maniac-en/req/internal/tui/views"
 )
@@ -21,6 +24,7 @@ type AppModel struct {
 	height      int
 	Views       map[ViewName]views.ViewInterface
 	focusedView ViewName
+	help        help.Model
 }
 
 func (a AppModel) Init() tea.Cmd {
@@ -38,8 +42,8 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 		return a, tea.Batch(cmds...)
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c":
+		switch {
+		case key.Matches(msg, keybinds.Keys.Quit):
 			return a, tea.Quit
 		}
 	}
@@ -54,13 +58,20 @@ func (a AppModel) View() string {
 	footer := a.Footer()
 	header := a.Header()
 	view := a.Views[a.focusedView].View()
-	return lipgloss.JoinVertical(lipgloss.Top, header, view, footer)
+	help := a.Help()
+	return lipgloss.JoinVertical(lipgloss.Top, header, view, help, footer)
+}
+
+func (a AppModel) Help() string {
+	appHelp := styles.AppHelpStyle.Render(" • " + a.help.View(keybinds.Keys))
+	return lipgloss.JoinHorizontal(lipgloss.Left, a.Views[a.focusedView].Help(), appHelp)
 }
 
 func (a *AppModel) AvailableHeight() int {
 	footer := a.Footer()
 	header := a.Header()
-	return a.height - lipgloss.Height(header) - lipgloss.Height(footer)
+	help := a.Views[a.focusedView].Help()
+	return a.height - lipgloss.Height(header) - lipgloss.Height(footer) - lipgloss.Height(help)
 }
 
 func (a AppModel) Header() string {
@@ -88,6 +99,7 @@ func NewAppModel(ctx *Context) AppModel {
 	model := AppModel{
 		focusedView: Collections,
 		ctx:         ctx,
+		help:        help.New(),
 	}
 	model.Views = map[ViewName]views.ViewInterface{
 		Collections: views.NewCollectionsView(model.ctx.Collections),

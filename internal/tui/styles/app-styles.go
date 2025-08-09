@@ -11,4 +11,6 @@ var (
 	FooterVersionStyle = lipgloss.NewStyle().Background(footerSegmentBG).AlignHorizontal(lipgloss.Right).PaddingRight(2).Foreground(footerSegmentFG)
 	TabHeadingInactive = lipgloss.NewStyle().Width(25).AlignHorizontal(lipgloss.Center).Border(lipgloss.NormalBorder(), false, false, false, true)
 	TabHeadingActive   = lipgloss.NewStyle().Background(accent).Foreground(headingForeground).Width(25).AlignHorizontal(lipgloss.Center).Border(lipgloss.NormalBorder(), false, false, false, true)
+	HelpStyle          = lipgloss.NewStyle().Padding(1, 0, 1, 2)
+	AppHelpStyle       = lipgloss.NewStyle().Padding(1, 0).Foreground(helpFG)
 )

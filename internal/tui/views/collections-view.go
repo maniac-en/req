@@ -4,11 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
+	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
+	"github.com/maniac-en/req/internal/tui/styles"
 )
 
 type CollectionsView struct {
@@ -16,6 +19,8 @@ type CollectionsView struct {
 	height  int
 	list    optionsProvider.OptionsProvider[collections.CollectionEntity, string]
 	manager *collections.CollectionsManager
+	help    help.Model
+	keys    *keybinds.ListKeyMap
 }
 
 func (c CollectionsView) Init() tea.Cmd {
@@ -27,7 +32,7 @@ func (c CollectionsView) Name() string {
 }
 
 func (c CollectionsView) Help() string {
-	return ""
+	return styles.HelpStyle.Render(c.help.View(c.keys))
 }
 
 func (c CollectionsView) GetFooterSegment() string {
@@ -84,13 +89,17 @@ func itemMapper(items []collections.CollectionEntity) []list.Item {
 }
 
 func NewCollectionsView(collManager *collections.CollectionsManager) *CollectionsView {
-	config := defaultListConfig[collections.CollectionEntity, string]()
+	keybinds := keybinds.NewListKeyMap()
+	config := defaultListConfig[collections.CollectionEntity, string](keybinds)
 
 	config.GetItemsFunc = collManager.List
 	config.ItemMapper = itemMapper
+	config.AdditionalKeymaps = keybinds
 
 	return &CollectionsView{
 		list:    optionsProvider.NewOptionsProvider(config),
 		manager: collManager,
+		help:    help.New(),
+		keys:    keybinds,
 	}
 }

@@ -10,4 +10,5 @@ var (
 	headingForeground = lipgloss.Color("#000000")
 	footerSegmentBG   = lipgloss.Color("#262626")
 	footerSegmentFG   = lipgloss.Color("#656565")
+	helpFG            = lipgloss.Color("#3C3C3C")
 )

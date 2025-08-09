@@ -3,6 +3,7 @@ package views
 import (
 	"github.com/charmbracelet/bubbles/list"
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
+	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/styles"
 )
 
@@ -15,15 +16,24 @@ func createDelegate() list.DefaultDelegate {
 	return d
 }
 
-func defaultListConfig[T, U any]() *optionsProvider.ListConfig[T, U] {
+func defaultListConfig[T, U any](binds *keybinds.ListKeyMap) *optionsProvider.ListConfig[T, U] {
 	config := optionsProvider.ListConfig[T, U]{
-		ShowPagination:   false,
+		ShowPagination:   true,
 		ShowStatusBar:    false,
 		ShowHelp:         false,
 		ShowTitle:        false,
 		FilteringEnabled: true,
-
-		Delegate: createDelegate(),
+		Delegate:         createDelegate(),
+		KeyMap: list.KeyMap{
+			CursorUp:             binds.CursorUp,
+			CursorDown:           binds.CursorDown,
+			NextPage:             binds.NextPage,
+			PrevPage:             binds.PrevPage,
+			Filter:               binds.Filter,
+			ClearFilter:          binds.ClearFilter,
+			CancelWhileFiltering: binds.CancelWhileFiltering,
+			AcceptWhileFiltering: binds.AcceptWhileFiltering,
+		},
 	}
 	return &config
 }
