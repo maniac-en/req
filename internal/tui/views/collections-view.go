@@ -45,6 +45,8 @@ func (c CollectionsView) Update(msg tea.Msg) (ViewInterface, tea.Cmd) {
 		cmds = append(cmds, cmd)
 	case messages.ItemAdded:
 		c.manager.Create(context.Background(), msg.Item)
+	case messages.ItemEdited:
+		c.manager.Update(context.Background(), msg.ItemID, msg.Item)
 	case messages.DeleteItem:
 		c.manager.Delete(context.Background(), msg.ItemID)
 		c.list.RefreshItems()

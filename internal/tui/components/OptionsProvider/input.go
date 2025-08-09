@@ -13,7 +13,7 @@ type OptionsInput struct {
 	input  textinput.Model
 	height int
 	width  int
-	editId int
+	editId int64
 }
 
 func NewOptionsInput(config *InputConfig) OptionsInput {
@@ -41,7 +41,14 @@ func (i OptionsInput) Update(msg tea.Msg) (OptionsInput, tea.Cmd) {
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keybinds.Keys.Choose):
-			return i, func() tea.Msg { return messages.ItemAdded{Item: i.input.Value()} }
+			itemName := i.input.Value()
+			i.input.SetValue("")
+			if i.editId == -1 {
+				return i, func() tea.Msg { return messages.ItemAdded{Item: itemName} }
+			}
+			return i, func() tea.Msg { return messages.ItemEdited{Item: itemName, ItemID: i.editId} }
+		case key.Matches(msg, keybinds.Keys.Back):
+			return i, func() tea.Msg { return messages.DeactivateView{} }
 		}
 	}
 
@@ -59,7 +66,7 @@ func (i *OptionsInput) SetInput(text string) {
 	i.input.SetValue(text)
 }
 
-func (i *OptionsInput) OnFocus(id ...int) {
+func (i *OptionsInput) OnFocus(id ...int64) {
 	if len(id) > 0 {
 		i.editId = id[0]
 	}

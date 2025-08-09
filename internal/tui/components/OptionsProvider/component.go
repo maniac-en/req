@@ -65,14 +65,24 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 					return o, tea.Batch(cmds...)
 				case key.Matches(msg, keybinds.Keys.Remove):
 					return o, func() tea.Msg { return messages.DeleteItem{ItemID: int64(o.GetSelected().ID)} }
+				case key.Matches(msg, keybinds.Keys.EditItem):
+					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
+					o.input.SetInput(o.GetSelected().Name)
+					o.input.OnFocus(o.GetSelected().ID)
+					o.focused = textComponent
+					return o, tea.Batch(cmds...)
 				}
 			}
 		}
-	case messages.ItemAdded:
+	case messages.ItemAdded, messages.ItemEdited:
 		o.input.OnBlur()
 		o.focused = listComponent
 		o.list.SetSize(o.list.Width(), o.height)
 		o.RefreshItems()
+	case messages.DeactivateView:
+		o.input.OnBlur()
+		o.focused = listComponent
+		o.list.SetSize(o.list.Width(), o.height)
 	}
 	switch o.focused {
 	case listComponent:
