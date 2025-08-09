@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/log"
+	input "github.com/maniac-en/req/internal/tui/components/Input"
 	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
 )
@@ -21,7 +22,7 @@ const (
 
 type OptionsProvider[T, U any] struct {
 	list           list.Model
-	input          OptionsInput
+	input          input.OptionsInput
 	onSelectAction tea.Msg
 	width          int
 	height         int
@@ -151,7 +152,7 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
 func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U] {
 
-	inputConfig := InputConfig{
+	inputConfig := input.InputConfig{
 		CharLimit:   100,
 		Placeholder: "Add A New Collection...",
 		Width:       22,
@@ -161,7 +162,7 @@ func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U
 	return OptionsProvider[T, U]{
 		list:       initList(config),
 		focused:    listComponent,
-		input:      NewOptionsInput(&inputConfig),
+		input:      input.NewOptionsInput(&inputConfig),
 		getItems:   config.GetItemsFunc,
 		itemMapper: config.ItemMapper,
 		// onSelectAction: config.OnSelectAction,

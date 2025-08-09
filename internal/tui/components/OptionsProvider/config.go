@@ -26,10 +26,3 @@ type ListConfig[T, U any] struct {
 	GetItemsFunc func(context.Context) ([]T, error)
 	// Style    lipgloss.Style
 }
-
-type InputConfig struct {
-	Prompt      string
-	Placeholder string
-	CharLimit   int
-	Width       int
-}
