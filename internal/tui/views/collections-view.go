@@ -1,18 +1,21 @@
 package views
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type CollectionsView struct {
-	width  int
-	height int
-	list   optionsProvider.OptionsProvider
+	width   int
+	height  int
+	list    optionsProvider.OptionsProvider[collections.CollectionEntity, string]
+	manager *collections.CollectionsManager
 }
 
 func (c CollectionsView) Init() tea.Cmd {
@@ -40,6 +43,8 @@ func (c CollectionsView) Update(msg tea.Msg) (ViewInterface, tea.Cmd) {
 		c.width = msg.Width
 		c.list, cmd = c.list.Update(msg)
 		cmds = append(cmds, cmd)
+	case messages.ItemAdded:
+		c.manager.Create(context.Background(), msg.Item)
 	}
 
 	c.list, cmd = c.list.Update(msg)
@@ -75,15 +80,12 @@ func itemMapper(items []collections.CollectionEntity) []list.Item {
 
 func NewCollectionsView(collManager *collections.CollectionsManager) *CollectionsView {
 	config := defaultListConfig[collections.CollectionEntity, string]()
-	config.CrudOps = optionsProvider.Crud[collections.CollectionEntity, string]{
-		Create: collManager.Create,
-		Read:   collManager.Read,
-		Update: collManager.Update,
-		Delete: collManager.Delete,
-		List:   collManager.List,
-	}
+
+	config.GetItemsFunc = collManager.List
 	config.ItemMapper = itemMapper
+
 	return &CollectionsView{
-		list: optionsProvider.NewOptionsProvider(config),
+		list:    optionsProvider.NewOptionsProvider(config),
+		manager: collManager,
 	}
 }

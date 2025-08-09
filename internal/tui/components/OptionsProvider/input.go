@@ -1,8 +1,12 @@
 package optionsProvider
 
 import (
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/maniac-en/req/internal/tui/keybinds"
+	"github.com/maniac-en/req/internal/tui/messages"
+	"github.com/maniac-en/req/internal/tui/styles"
 )
 
 type OptionsInput struct {
@@ -12,11 +16,14 @@ type OptionsInput struct {
 	editId int
 }
 
-func NewOptionsInput() OptionsInput {
+func NewOptionsInput(config *InputConfig) OptionsInput {
 	input := textinput.New()
-	input.CharLimit = 100
-	input.Placeholder = "Add New Collection..."
-	input.Width = 22
+	input.CharLimit = config.CharLimit
+	input.Placeholder = config.Placeholder
+	input.Width = config.Width
+	input.TextStyle = styles.InputStyle
+	input.Prompt = config.Prompt
+
 	return OptionsInput{
 		input:  input,
 		editId: -1,
@@ -30,6 +37,13 @@ func (i OptionsInput) Init() tea.Cmd {
 func (i OptionsInput) Update(msg tea.Msg) (OptionsInput, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch {
+		case key.Matches(msg, keybinds.Keys.Choose):
+			return i, func() tea.Msg { return messages.ItemAdded{Item: i.input.Value()} }
+		}
+	}
 
 	i.input, cmd = i.input.Update(msg)
 	cmds = append(cmds, cmd)
@@ -38,7 +52,7 @@ func (i OptionsInput) Update(msg tea.Msg) (OptionsInput, tea.Cmd) {
 }
 
 func (i OptionsInput) View() string {
-	return i.input.View()
+	return styles.InputStyle.Render(i.input.View())
 }
 
 func (i *OptionsInput) SetInput(text string) {

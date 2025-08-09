@@ -23,14 +23,13 @@ type ListConfig[T, U any] struct {
 
 	ItemMapper func([]T) []list.Item
 
-	CrudOps Crud[T, U]
+	GetItemsFunc func(context.Context) ([]T, error)
 	// Style    lipgloss.Style
 }
 
-type Crud[T, U any] struct {
-	Create func(context.Context, U) (T, error)
-	Read   func(context.Context, int64) (T, error)
-	Update func(context.Context, int64, U) (T, error)
-	Delete func(context.Context, int64) error
-	List   func(context.Context) ([]T, error)
+type InputConfig struct {
+	Prompt      string
+	Placeholder string
+	CharLimit   int
+	Width       int
 }

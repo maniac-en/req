@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/tui/keybinds"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type focusedComp string
@@ -17,13 +18,15 @@ const (
 	textComponent = "text"
 )
 
-type OptionsProvider struct {
+type OptionsProvider[T, U any] struct {
 	list           list.Model
 	input          OptionsInput
 	onSelectAction tea.Msg
 	width          int
 	height         int
 	focused        focusedComp
+	getItems       func(context.Context) ([]T, error)
+	itemMapper     func([]T) []list.Item
 }
 
 type Option struct {
@@ -37,11 +40,11 @@ func (o Option) Description() string { return o.Subtext }
 func (o Option) Value() int64        { return o.ID }
 func (o Option) FilterValue() string { return o.Name }
 
-func (o OptionsProvider) Init() tea.Cmd {
+func (o OptionsProvider[T, U]) Init() tea.Cmd {
 	return nil
 }
 
-func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
+func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	switch msg := msg.(type) {
@@ -62,6 +65,15 @@ func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
 				}
 			}
 		}
+	case messages.ItemAdded:
+		o.input.OnBlur()
+		o.focused = listComponent
+		o.list.SetSize(o.list.Width(), o.height)
+		newItems, err := o.getItems(context.Background())
+		if err != nil {
+
+		}
+		o.list.SetItems(o.itemMapper(newItems))
 
 	}
 	switch o.focused {
@@ -74,31 +86,31 @@ func (o OptionsProvider) Update(msg tea.Msg) (OptionsProvider, tea.Cmd) {
 	return o, tea.Batch(cmds...)
 }
 
-func (o OptionsProvider) View() string {
+func (o OptionsProvider[T, U]) View() string {
 	if o.focused == textComponent {
 		return lipgloss.JoinVertical(lipgloss.Left, o.list.View(), o.input.View())
 	}
 	return o.list.View()
 }
 
-func (o *OptionsProvider) OnFocus() {
+func (o *OptionsProvider[T, U]) OnFocus() {
 }
 
-func (o OptionsProvider) OnBlur() {
+func (o OptionsProvider[T, U]) OnBlur() {
 
 }
 
-func (o OptionsProvider) GetSelected() Option {
+func (o OptionsProvider[T, U]) GetSelected() Option {
 	return o.list.SelectedItem().(Option)
 }
 
-func (o OptionsProvider) IsFiltering() bool {
+func (o OptionsProvider[T, U]) IsFiltering() bool {
 	return o.list.FilterState() == list.Filtering
 }
 
 func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
-	rawItems, err := config.CrudOps.List(context.Background())
+	rawItems, err := config.GetItemsFunc(context.Background())
 
 	if err != nil {
 		rawItems = []T{}
@@ -120,11 +132,21 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 	return list
 }
 
-func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider {
-	return OptionsProvider{
-		list:    initList(config),
-		focused: listComponent,
-		input:   NewOptionsInput(),
+func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U] {
+
+	inputConfig := InputConfig{
+		CharLimit:   100,
+		Placeholder: "Add A New Collection...",
+		Width:       22,
+		Prompt:      "",
+	}
+
+	return OptionsProvider[T, U]{
+		list:       initList(config),
+		focused:    listComponent,
+		input:      NewOptionsInput(&inputConfig),
+		getItems:   config.GetItemsFunc,
+		itemMapper: config.ItemMapper,
 		// onSelectAction: config.OnSelectAction,
 	}
 }

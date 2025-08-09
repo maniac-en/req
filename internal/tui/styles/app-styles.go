@@ -7,8 +7,8 @@ import (
 var (
 	footerNameStyle    = lipgloss.NewStyle().Bold(true)
 	footerNameBGStyle  = lipgloss.NewStyle().Background(footerNameBG).Padding(0, 3, 0)
-	FooterSegmentStyle = lipgloss.NewStyle().Background(lipgloss.Color("#262626")).PaddingLeft(2).Foreground(lipgloss.Color("#656565"))
-	FooterVersionStyle = lipgloss.NewStyle().Background(lipgloss.Color("#262626")).AlignHorizontal(lipgloss.Right).PaddingRight(2).Foreground(lipgloss.Color("#656565"))
+	FooterSegmentStyle = lipgloss.NewStyle().Background(footerSegmentBG).PaddingLeft(2).Foreground(footerSegmentFG)
+	FooterVersionStyle = lipgloss.NewStyle().Background(footerSegmentBG).AlignHorizontal(lipgloss.Right).PaddingRight(2).Foreground(footerSegmentFG)
 	TabHeadingInactive = lipgloss.NewStyle().Width(25).AlignHorizontal(lipgloss.Center).Border(lipgloss.NormalBorder(), false, false, false, true)
 	TabHeadingActive   = lipgloss.NewStyle().Background(accent).Foreground(headingForeground).Width(25).AlignHorizontal(lipgloss.Center).Border(lipgloss.NormalBorder(), false, false, false, true)
 )

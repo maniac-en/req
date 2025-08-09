@@ -8,4 +8,6 @@ var (
 	footerNameFGTo    = lipgloss.Color("#77F07F")
 	accent            = lipgloss.Color("#77F07F")
 	headingForeground = lipgloss.Color("#000000")
+	footerSegmentBG   = lipgloss.Color("#262626")
+	footerSegmentFG   = lipgloss.Color("#656565")
 )
