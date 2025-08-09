@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/log"
 	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
 )
@@ -62,6 +63,8 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 					o.input.OnFocus()
 					o.focused = textComponent
 					return o, tea.Batch(cmds...)
+				case key.Matches(msg, keybinds.Keys.Remove):
+					return o, func() tea.Msg { return messages.DeleteItem{ItemID: int64(o.GetSelected().ID)} }
 				}
 			}
 		}
@@ -69,12 +72,7 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 		o.input.OnBlur()
 		o.focused = listComponent
 		o.list.SetSize(o.list.Width(), o.height)
-		newItems, err := o.getItems(context.Background())
-		if err != nil {
-
-		}
-		o.list.SetItems(o.itemMapper(newItems))
-
+		o.RefreshItems()
 	}
 	switch o.focused {
 	case listComponent:
@@ -106,6 +104,15 @@ func (o OptionsProvider[T, U]) GetSelected() Option {
 
 func (o OptionsProvider[T, U]) IsFiltering() bool {
 	return o.list.FilterState() == list.Filtering
+}
+
+func (o *OptionsProvider[T, U]) RefreshItems() {
+	newItems, err := o.getItems(context.Background())
+	if err != nil {
+		log.Warn("Fetching items failed")
+		return
+	}
+	o.list.SetItems(o.itemMapper(newItems))
 }
 
 func initList[T, U any](config *ListConfig[T, U]) list.Model {
