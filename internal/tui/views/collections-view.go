@@ -21,6 +21,7 @@ type CollectionsView struct {
 	manager *collections.CollectionsManager
 	help    help.Model
 	keys    *keybinds.ListKeyMap
+	order   int
 }
 
 func (c CollectionsView) Init() tea.Cmd {
@@ -67,6 +68,10 @@ func (c CollectionsView) View() string {
 	return c.list.View()
 }
 
+func (c CollectionsView) Order() int {
+	return c.order
+}
+
 func (c CollectionsView) OnFocus() {
 
 }
@@ -88,7 +93,7 @@ func itemMapper(items []collections.CollectionEntity) []list.Item {
 	return opts
 }
 
-func NewCollectionsView(collManager *collections.CollectionsManager) *CollectionsView {
+func NewCollectionsView(collManager *collections.CollectionsManager, order int) *CollectionsView {
 	keybinds := keybinds.NewListKeyMap()
 	config := defaultListConfig[collections.CollectionEntity, string](keybinds)
 
@@ -101,5 +106,6 @@ func NewCollectionsView(collManager *collections.CollectionsManager) *Collection
 		manager: collManager,
 		help:    help.New(),
 		keys:    keybinds,
+		order:   order,
 	}
 }

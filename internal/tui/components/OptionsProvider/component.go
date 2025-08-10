@@ -67,6 +67,8 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 					return o, tea.Batch(cmds...)
 				case key.Matches(msg, o.keys.DeleteItem):
 					return o, func() tea.Msg { return messages.DeleteItem{ItemID: int64(o.GetSelected().ID)} }
+				case key.Matches(msg, o.keys.Choose):
+					return o, func() tea.Msg { return messages.ChooseCollection{} }
 				case key.Matches(msg, o.keys.EditItem):
 					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
 					o.input.SetInput(o.GetSelected().Name)

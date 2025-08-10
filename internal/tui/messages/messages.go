@@ -7,7 +7,11 @@ type ItemEdited struct {
 	Item   string
 	ItemID int64
 }
+
 type DeleteItem struct {
 	ItemID int64
 }
+
+type ChooseCollection struct{}
+
 type DeactivateView struct{}

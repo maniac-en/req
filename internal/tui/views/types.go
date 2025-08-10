@@ -12,6 +12,7 @@ type ViewInterface interface {
 	GetFooterSegment() string
 	Update(tea.Msg) (ViewInterface, tea.Cmd)
 	View() string
+	Order() int
 	OnFocus()
 	OnBlur()
 }

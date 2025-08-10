@@ -1,6 +1,7 @@
 package app
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -8,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/tui/keybinds"
+	"github.com/maniac-en/req/internal/tui/messages"
 	"github.com/maniac-en/req/internal/tui/styles"
 	"github.com/maniac-en/req/internal/tui/views"
 )
@@ -16,7 +18,13 @@ type ViewName string
 
 const (
 	Collections ViewName = "collections"
+	Endpoints   ViewName = "endpoints"
 )
+
+type Heading struct {
+	name  string
+	order int
+}
 
 type AppModel struct {
 	ctx         *Context
@@ -39,8 +47,14 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		a.height = msg.Height
 		a.width = msg.Width
-		a.Views[a.focusedView], cmd = a.Views[a.focusedView].Update(tea.WindowSizeMsg{Height: a.AvailableHeight(), Width: msg.Width})
+		for key, _ := range a.Views {
+			a.Views[key], cmd = a.Views[key].Update(tea.WindowSizeMsg{Height: a.AvailableHeight(), Width: msg.Width})
+			cmds = append(cmds, cmd)
+		}
 		cmds = append(cmds, cmd)
+		return a, tea.Batch(cmds...)
+	case messages.ChooseCollection:
+		a.focusedView = Endpoints
 		return a, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		switch {
@@ -82,14 +96,28 @@ func (a *AppModel) AvailableHeight() int {
 func (a AppModel) Header() string {
 	var b strings.Builder
 
-	for key, value := range a.Views {
-		if key == a.focusedView {
-			b.WriteString(styles.TabHeadingActive.Render(value.Name()))
+	// INFO: this might be a bit messy, could be a nice idea to look into OrderedMaps maybe?
+	views := []Heading{}
+	for key := range a.Views {
+		views = append(views, Heading{
+			name:  a.Views[key].Name(),
+			order: a.Views[key].Order(),
+		})
+	}
+	sort.Slice(views, func(i, j int) bool {
+		return views[i].order < views[j].order
+	})
+
+	for _, item := range views {
+		if item.name == a.Views[a.focusedView].Name() {
+			b.WriteString(styles.TabHeadingActive.Render(item.name))
 		} else {
-			b.WriteString(styles.TabHeadingInactive.Render(value.Name()))
+			b.WriteString(styles.TabHeadingInactive.Render(item.name))
 		}
 	}
+
 	b.WriteString(styles.TabHeadingInactive.Render(""))
+
 	return b.String()
 }
 
@@ -112,7 +140,8 @@ func NewAppModel(ctx *Context) AppModel {
 		keys:        appKeybinds,
 	}
 	model.Views = map[ViewName]views.ViewInterface{
-		Collections: views.NewCollectionsView(model.ctx.Collections),
+		Collections: views.NewCollectionsView(model.ctx.Collections, 1),
+		Endpoints:   views.NewEndpointsView(2),
 	}
 	return model
 }
