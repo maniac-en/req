@@ -8,7 +8,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/log"
-	input "github.com/maniac-en/req/internal/tui/components/Input"
 	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
 )
@@ -22,7 +21,7 @@ const (
 
 type OptionsProvider[T, U any] struct {
 	list           list.Model
-	input          input.OptionsInput
+	input          OptionsInput
 	onSelectAction tea.Msg
 	keys           *keybinds.ListKeyMap
 	width          int
@@ -191,12 +190,12 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 
 func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U] {
 
-	inputConfig := input.InputConfig{
+	inputConfig := InputConfig{
 		CharLimit:   100,
 		Placeholder: "Add A New Collection...",
 		Width:       22,
 		Prompt:      "",
-		KeyMap: input.InputKeyMaps{
+		KeyMap: InputKeyMaps{
 			Accept: config.AdditionalKeymaps.Accept,
 			Back:   config.AdditionalKeymaps.Back,
 		},
@@ -205,7 +204,7 @@ func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U
 	return OptionsProvider[T, U]{
 		list:       initList(config),
 		focused:    listComponent,
-		input:      input.NewOptionsInput(&inputConfig),
+		input:      NewOptionsInput(&inputConfig),
 		getItems:   config.GetItemsFunc,
 		itemMapper: config.ItemMapper,
 		keys:       config.AdditionalKeymaps,

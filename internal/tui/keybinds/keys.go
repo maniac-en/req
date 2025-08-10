@@ -22,16 +22,6 @@ type Keymaps struct {
 	Quit                 key.Binding
 }
 
-func (k Keymaps) ShortHelp() []key.Binding {
-	return []key.Binding{
-		k.Quit,
-	}
-}
-
-func (k Keymaps) FullHelp() [][]key.Binding {
-	return [][]key.Binding{}
-}
-
 var Keys = Keymaps{
 	Back: key.NewBinding(
 		key.WithKeys("esc"),

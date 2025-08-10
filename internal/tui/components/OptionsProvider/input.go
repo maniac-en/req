@@ -1,4 +1,4 @@
-package input
+package optionsProvider
 
 import (
 	"github.com/charmbracelet/bubbles/key"
