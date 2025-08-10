@@ -14,6 +14,8 @@ type ListKeyMap struct {
 	AddItem              key.Binding
 	EditItem             key.Binding
 	DeleteItem           key.Binding
+	Accept               key.Binding
+	Back                 key.Binding
 }
 
 func (c ListKeyMap) ShortHelp() []key.Binding {
@@ -39,5 +41,7 @@ func NewListKeyMap() *ListKeyMap {
 		AddItem:              Keys.InsertItem,
 		DeleteItem:           Keys.Remove,
 		EditItem:             Keys.EditItem,
+		Accept:               Keys.Choose,
+		Back:                 Keys.Back,
 	}
 }

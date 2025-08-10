@@ -111,6 +111,13 @@ func (o OptionsProvider[T, U]) OnBlur() {
 }
 
 func (o OptionsProvider[T, U]) GetSelected() Option {
+	if o.IsFiltering() {
+		return Option{
+			Name:    "Filtering....",
+			ID:      -1,
+			Subtext: "",
+		}
+	}
 	return o.list.SelectedItem().(Option)
 }
 
@@ -125,6 +132,36 @@ func (o *OptionsProvider[T, U]) RefreshItems() {
 		return
 	}
 	o.list.SetItems(o.itemMapper(newItems))
+}
+
+func (o *OptionsProvider[T, U]) Help() []key.Binding {
+	var binds []key.Binding
+	switch o.focused {
+	case listComponent:
+		if o.IsFiltering() {
+			binds = []key.Binding{
+				o.keys.AcceptWhileFiltering,
+				o.keys.CancelWhileFiltering,
+				o.keys.ClearFilter,
+			}
+		} else {
+			binds = []key.Binding{
+				o.keys.CursorUp,
+				o.keys.CursorDown,
+				o.keys.NextPage,
+				o.keys.PrevPage,
+				o.keys.Filter,
+				o.keys.AddItem,
+				o.keys.EditItem,
+				o.keys.DeleteItem,
+			}
+		}
+	case textComponent:
+		binds = o.input.Help()
+	default:
+		binds = []key.Binding{}
+	}
+	return binds
 }
 
 func initList[T, U any](config *ListConfig[T, U]) list.Model {
@@ -157,6 +194,10 @@ func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U
 		Placeholder: "Add A New Collection...",
 		Width:       22,
 		Prompt:      "",
+		KeyMap: input.InputKeyMaps{
+			Accept: config.AdditionalKeymaps.Accept,
+			Back:   config.AdditionalKeymaps.Back,
+		},
 	}
 
 	return OptionsProvider[T, U]{

@@ -4,7 +4,6 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
 	"github.com/maniac-en/req/internal/tui/styles"
 )
@@ -14,6 +13,7 @@ type OptionsInput struct {
 	height int
 	width  int
 	editId int64
+	keys   InputKeyMaps
 }
 
 func NewOptionsInput(config *InputConfig) OptionsInput {
@@ -27,6 +27,7 @@ func NewOptionsInput(config *InputConfig) OptionsInput {
 	return OptionsInput{
 		input:  input,
 		editId: -1,
+		keys:   config.KeyMap,
 	}
 }
 
@@ -40,14 +41,14 @@ func (i OptionsInput) Update(msg tea.Msg) (OptionsInput, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch {
-		case key.Matches(msg, keybinds.Keys.Choose):
+		case key.Matches(msg, i.keys.Accept):
 			itemName := i.input.Value()
 			i.input.SetValue("")
 			if i.editId == -1 {
 				return i, func() tea.Msg { return messages.ItemAdded{Item: itemName} }
 			}
 			return i, func() tea.Msg { return messages.ItemEdited{Item: itemName, ItemID: i.editId} }
-		case key.Matches(msg, keybinds.Keys.Back):
+		case key.Matches(msg, i.keys.Back):
 			return i, func() tea.Msg { return messages.DeactivateView{} }
 		}
 	}
@@ -60,6 +61,13 @@ func (i OptionsInput) Update(msg tea.Msg) (OptionsInput, tea.Cmd) {
 
 func (i OptionsInput) View() string {
 	return styles.InputStyle.Render(i.input.View())
+}
+
+func (i OptionsInput) Help() []key.Binding {
+	return []key.Binding{
+		i.keys.Accept,
+		i.keys.Back,
+	}
 }
 
 func (i *OptionsInput) SetInput(text string) {

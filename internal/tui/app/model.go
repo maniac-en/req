@@ -24,6 +24,7 @@ type AppModel struct {
 	height      int
 	Views       map[ViewName]views.ViewInterface
 	focusedView ViewName
+	keys        []key.Binding
 	help        help.Model
 }
 
@@ -63,14 +64,18 @@ func (a AppModel) View() string {
 }
 
 func (a AppModel) Help() string {
-	appHelp := styles.AppHelpStyle.Render(" • " + a.help.View(keybinds.Keys))
-	return lipgloss.JoinHorizontal(lipgloss.Left, a.Views[a.focusedView].Help(), appHelp)
+	viewHelp := a.Views[a.focusedView].Help()
+	appHelp := append(viewHelp, a.keys...)
+	helpStruct := keybinds.Help{
+		Keys: appHelp,
+	}
+	return styles.HelpStyle.Render(a.help.View(helpStruct))
 }
 
 func (a *AppModel) AvailableHeight() int {
 	footer := a.Footer()
 	header := a.Header()
-	help := a.Views[a.focusedView].Help()
+	help := a.Help()
 	return a.height - lipgloss.Height(header) - lipgloss.Height(footer) - lipgloss.Height(help)
 }
 
@@ -96,10 +101,15 @@ func (a AppModel) Footer() string {
 }
 
 func NewAppModel(ctx *Context) AppModel {
+	appKeybinds := []key.Binding{
+		keybinds.Keys.Quit,
+	}
+
 	model := AppModel{
 		focusedView: Collections,
 		ctx:         ctx,
 		help:        help.New(),
+		keys:        appKeybinds,
 	}
 	model.Views = map[ViewName]views.ViewInterface{
 		Collections: views.NewCollectionsView(model.ctx.Collections),

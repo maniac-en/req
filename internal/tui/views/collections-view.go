@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
 	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
-	"github.com/maniac-en/req/internal/tui/styles"
 )
 
 type CollectionsView struct {
@@ -31,8 +31,8 @@ func (c CollectionsView) Name() string {
 	return "Collections"
 }
 
-func (c CollectionsView) Help() string {
-	return styles.HelpStyle.Render(c.help.View(c.keys))
+func (c CollectionsView) Help() []key.Binding {
+	return c.list.Help()
 }
 
 func (c CollectionsView) GetFooterSegment() string {
