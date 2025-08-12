@@ -31,6 +31,14 @@ LIMIT ? OFFSET ?;
 SELECT COUNT(*) FROM endpoints
 WHERE collection_id = ?;
 
+-- name: UpdateEndpointName :one
+UPDATE endpoints
+SET
+    name = ?
+WHERE
+    id = ?
+RETURNING *;
+
 -- name: UpdateEndpoint :one
 UPDATE endpoints
 SET

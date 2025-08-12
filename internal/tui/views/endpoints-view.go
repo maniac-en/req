@@ -12,6 +12,7 @@ import (
 	"github.com/maniac-en/req/internal/backend/endpoints"
 	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
 	"github.com/maniac-en/req/internal/tui/keybinds"
+	"github.com/maniac-en/req/internal/tui/messages"
 )
 
 type EndpointsView struct {
@@ -32,7 +33,7 @@ func (e *EndpointsView) Name() string {
 }
 
 func (e *EndpointsView) Help() []key.Binding {
-	return []key.Binding{}
+	return e.list.Help()
 }
 
 func (e *EndpointsView) GetFooterSegment() string {
@@ -48,7 +49,22 @@ func (e *EndpointsView) Update(msg tea.Msg) (ViewInterface, tea.Cmd) {
 		e.width = msg.Width
 		e.list, cmd = e.list.Update(msg)
 		cmds = append(cmds, cmd)
+	case messages.ItemAdded:
+		e.manager.CreateEndpoint(context.Background(), endpoints.EndpointData{
+			CollectionID: e.collection.ID,
+			Name:         msg.Item,
+			Method:       "GET",
+		})
+	case messages.ItemEdited:
+		e.manager.UpdateEndpointName(context.Background(), msg.ItemID, msg.Item)
+	case messages.DeleteItem:
+		e.manager.Delete(context.Background(), msg.ItemID)
+		e.list.RefreshItems()
 	}
+
+	e.list, cmd = e.list.Update(msg)
+	cmds = append(cmds, cmd)
+
 	return e, tea.Batch(cmds...)
 }
 

@@ -241,3 +241,35 @@ func (q *Queries) UpdateEndpoint(ctx context.Context, arg UpdateEndpointParams) 
 	)
 	return i, err
 }
+
+const updateEndpointName = `-- name: UpdateEndpointName :one
+UPDATE endpoints
+SET
+    name = ?
+WHERE
+    id = ?
+RETURNING id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at
+`
+
+type UpdateEndpointNameParams struct {
+	Name string `db:"name" json:"name"`
+	ID   int64  `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateEndpointName(ctx context.Context, arg UpdateEndpointNameParams) (Endpoint, error) {
+	row := q.db.QueryRowContext(ctx, updateEndpointName, arg.Name, arg.ID)
+	var i Endpoint
+	err := row.Scan(
+		&i.ID,
+		&i.CollectionID,
+		&i.Name,
+		&i.Method,
+		&i.Url,
+		&i.Headers,
+		&i.QueryParams,
+		&i.RequestBody,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
