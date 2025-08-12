@@ -64,7 +64,7 @@ func (e *EndpointsManager) List(ctx context.Context) ([]EndpointEntity, error) {
 	return nil, fmt.Errorf("use ListByCollection to list endpoints for a specific collection")
 }
 
-func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID int64, limit, offset int) (*PaginatedEndpoints, error) {
+func (e *EndpointsManager) ListByCollectionByPage(ctx context.Context, collectionID int64, limit, offset int) (*PaginatedEndpoints, error) {
 	if err := crud.ValidateID(collectionID); err != nil {
 		log.Warn("endpoint list failed collection validation", "collection_id", collectionID)
 		return nil, crud.ErrInvalidInput
@@ -101,6 +101,29 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 	}
 	log.Info("retrieved endpoints", "collection_id", collectionID, "count", len(entities), "total", pagination.Total, "page", pagination.CurrentPage, "total_pages", pagination.TotalPages)
 	return result, nil
+}
+
+func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID int64) ([]EndpointEntity, error) {
+	if err := crud.ValidateID(collectionID); err != nil {
+		log.Warn("endpoint list failed collection validation", "collection_id", collectionID)
+		return nil, crud.ErrInvalidInput
+	}
+
+	log.Debug("listing endpoints", "collection_id", collectionID, "limit")
+
+	endpoints, err := e.DB.ListEndpointsByCollection(context.Background(), collectionID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Warn("error occured while fetching endpoints", "collection_id", collectionID)
+		return nil, err
+	}
+
+	entities := make([]EndpointEntity, len(endpoints))
+	for i, endpoint := range endpoints {
+		entities[i] = EndpointEntity{Endpoint: endpoint}
+	}
+
+	log.Info("retrieved endpoints", "collection_id", collectionID, "count")
+	return entities, nil
 }
 
 func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData) (EndpointEntity, error) {

@@ -13,6 +13,7 @@ type ViewInterface interface {
 	Update(tea.Msg) (ViewInterface, tea.Cmd)
 	View() string
 	Order() int
+	SetState(...any) error
 	OnFocus()
 	OnBlur()
 }

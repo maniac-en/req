@@ -16,6 +16,11 @@ RETURNING *;
 SELECT * FROM endpoints
 WHERE id = ? LIMIT 1;
 
+-- name: ListEndpointsByCollection :many
+SELECT * FROM endpoints
+WHERE collection_id = ?
+ORDER BY created_at DESC;
+
 -- name: ListEndpointsPaginated :many
 SELECT * FROM endpoints
 WHERE collection_id = ?

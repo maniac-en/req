@@ -105,6 +105,46 @@ func (q *Queries) GetEndpoint(ctx context.Context, id int64) (Endpoint, error) {
 	return i, err
 }
 
+const listEndpointsByCollection = `-- name: ListEndpointsByCollection :many
+SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
+WHERE collection_id = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListEndpointsByCollection(ctx context.Context, collectionID int64) ([]Endpoint, error) {
+	rows, err := q.db.QueryContext(ctx, listEndpointsByCollection, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Endpoint
+	for rows.Next() {
+		var i Endpoint
+		if err := rows.Scan(
+			&i.ID,
+			&i.CollectionID,
+			&i.Name,
+			&i.Method,
+			&i.Url,
+			&i.Headers,
+			&i.QueryParams,
+			&i.RequestBody,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEndpointsPaginated = `-- name: ListEndpointsPaginated :many
 SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
 WHERE collection_id = ?

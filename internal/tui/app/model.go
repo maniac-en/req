@@ -8,6 +8,8 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/maniac-en/req/internal/log"
+	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
 	"github.com/maniac-en/req/internal/tui/keybinds"
 	"github.com/maniac-en/req/internal/tui/messages"
 	"github.com/maniac-en/req/internal/tui/styles"
@@ -53,9 +55,16 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		cmds = append(cmds, cmd)
 		return a, tea.Batch(cmds...)
-	case messages.ChooseCollection:
-		a.focusedView = Endpoints
-		return a, tea.Batch(cmds...)
+	case messages.ChooseItem[optionsProvider.Option]:
+		switch msg.Source {
+		case "collections":
+			err := a.Views[Endpoints].SetState(msg.Item)
+			if err != nil {
+				log.Error(err.Error())
+			}
+			a.focusedView = Endpoints
+			return a, tea.Batch(cmds...)
+		}
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keybinds.Keys.Quit):
@@ -141,7 +150,7 @@ func NewAppModel(ctx *Context) AppModel {
 	}
 	model.Views = map[ViewName]views.ViewInterface{
 		Collections: views.NewCollectionsView(model.ctx.Collections, 1),
-		Endpoints:   views.NewEndpointsView(2),
+		Endpoints:   views.NewEndpointsView(model.ctx.Endpoints, 2),
 	}
 	return model
 }

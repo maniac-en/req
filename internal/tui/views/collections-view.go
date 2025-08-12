@@ -2,6 +2,7 @@ package views
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -68,6 +69,10 @@ func (c CollectionsView) View() string {
 	return c.list.View()
 }
 
+func (c CollectionsView) SetState(items ...any) error {
+	return errors.New("This view does not implement set state")
+}
+
 func (c CollectionsView) Order() int {
 	return c.order
 }
@@ -100,6 +105,7 @@ func NewCollectionsView(collManager *collections.CollectionsManager, order int) 
 	config.GetItemsFunc = collManager.List
 	config.ItemMapper = itemMapper
 	config.AdditionalKeymaps = keybinds
+	config.Source = "collections"
 
 	return &CollectionsView{
 		list:    optionsProvider.NewOptionsProvider(config),

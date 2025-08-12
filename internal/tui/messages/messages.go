@@ -12,6 +12,9 @@ type DeleteItem struct {
 	ItemID int64
 }
 
-type ChooseCollection struct{}
+type ChooseItem[T any] struct {
+	Item   T
+	Source string
+}
 
 type DeactivateView struct{}

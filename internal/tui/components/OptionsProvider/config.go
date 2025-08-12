@@ -2,6 +2,7 @@ package optionsProvider
 
 import (
 	"context"
+
 	"github.com/charmbracelet/bubbles/key"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -27,6 +28,7 @@ type ListConfig[T, U any] struct {
 	ItemMapper func([]T) []list.Item
 
 	GetItemsFunc func(context.Context) ([]T, error)
+	Source       string
 	// Style    lipgloss.Style
 }
 

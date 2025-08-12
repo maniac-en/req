@@ -29,6 +29,7 @@ type OptionsProvider[T, U any] struct {
 	focused        focusedComp
 	getItems       func(context.Context) ([]T, error)
 	itemMapper     func([]T) []list.Item
+	source         string
 }
 
 type Option struct {
@@ -67,7 +68,12 @@ func (o OptionsProvider[T, U]) Update(msg tea.Msg) (OptionsProvider[T, U], tea.C
 				case key.Matches(msg, o.keys.DeleteItem):
 					return o, func() tea.Msg { return messages.DeleteItem{ItemID: int64(o.GetSelected().ID)} }
 				case key.Matches(msg, o.keys.Choose):
-					return o, func() tea.Msg { return messages.ChooseCollection{} }
+					return o, func() tea.Msg {
+						return messages.ChooseItem[Option]{
+							Item:   o.GetSelected(),
+							Source: o.source,
+						}
+					}
 				case key.Matches(msg, o.keys.EditItem):
 					o.list.SetSize(o.list.Width(), o.height-lipgloss.Height(o.input.View()))
 					o.input.SetInput(o.GetSelected().Name)
@@ -188,8 +194,16 @@ func initList[T, U any](config *ListConfig[T, U]) list.Model {
 	return list
 }
 
-func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U] {
+func (o *OptionsProvider[T, U]) SetGetItemsFunc(getItems func(context.Context) ([]T, error)) {
+	o.getItems = getItems
+	items, err := getItems(context.Background())
+	if err != nil {
+		log.Error("error fetching items")
+	}
+	o.list.SetItems(o.itemMapper(items))
+}
 
+func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U] {
 	inputConfig := InputConfig{
 		CharLimit:   100,
 		Placeholder: "Add A New Collection...",
@@ -208,6 +222,6 @@ func NewOptionsProvider[T, U any](config *ListConfig[T, U]) OptionsProvider[T, U
 		getItems:   config.GetItemsFunc,
 		itemMapper: config.ItemMapper,
 		keys:       config.AdditionalKeymaps,
-		// onSelectAction: config.OnSelectAction,
+		source:     config.Source,
 	}
 }
