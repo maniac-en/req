@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	footerNameStyle    = lipgloss.NewStyle().Bold(true)
+	footerNameStyle    = lipgloss.NewStyle().Bold(true).Background(footerNameBG)
 	footerNameBGStyle  = lipgloss.NewStyle().Background(footerNameBG).Padding(0, 3, 0)
 	FooterSegmentStyle = lipgloss.NewStyle().Background(footerSegmentBG).PaddingLeft(2).Foreground(footerSegmentFG)
 	FooterVersionStyle = lipgloss.NewStyle().Background(footerSegmentBG).AlignHorizontal(lipgloss.Right).PaddingRight(2).Foreground(footerSegmentFG)
