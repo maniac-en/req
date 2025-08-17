@@ -13,4 +13,5 @@ var (
 	TabHeadingActive   = lipgloss.NewStyle().Background(accent).Foreground(headingForeground).Width(25).AlignHorizontal(lipgloss.Center).Border(lipgloss.NormalBorder(), false, false, false, true)
 	HelpStyle          = lipgloss.NewStyle().Padding(1, 0, 1, 2)
 	AppHelpStyle       = lipgloss.NewStyle().Padding(1, 0).Foreground(helpFG)
+	ErrorBarStyle      = lipgloss.NewStyle().Background(lipgloss.Color("#FF0000")).Foreground(lipgloss.Color("#FFFFFF")).Padding(0, 1)
 )

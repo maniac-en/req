@@ -36,6 +36,7 @@ type AppModel struct {
 	focusedView ViewName
 	keys        []key.Binding
 	help        help.Model
+	errorMsg    string
 }
 
 func (a AppModel) Init() tea.Cmd {
@@ -79,7 +80,12 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.focusedView = ViewName(msg.ViewName)
 		a.Views[a.focusedView].OnFocus()
 		return a, nil
+	case messages.ShowError:
+		log.Error("user operation failed", "error", msg.Message)
+		a.errorMsg = msg.Message
+		return a, nil
 	case tea.KeyMsg:
+		a.errorMsg = ""
 		switch {
 		case key.Matches(msg, keybinds.Keys.Quit):
 			return a, tea.Quit
@@ -97,6 +103,12 @@ func (a AppModel) View() string {
 	header := a.Header()
 	view := a.Views[a.focusedView].View()
 	help := a.Help()
+	
+	if a.errorMsg != "" {
+		errorBar := styles.ErrorBarStyle.Width(a.width).Render("Error: " + a.errorMsg)
+		return lipgloss.JoinVertical(lipgloss.Top, header, view, errorBar, help, footer)
+	}
+	
 	return lipgloss.JoinVertical(lipgloss.Top, header, view, help, footer)
 }
 

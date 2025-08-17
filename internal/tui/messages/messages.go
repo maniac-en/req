@@ -23,3 +23,9 @@ type NavigateToView struct {
 	ViewName string
 	Data     interface{}
 }
+
+type RefreshItemsList struct{}
+
+type ShowError struct {
+	Message string
+}

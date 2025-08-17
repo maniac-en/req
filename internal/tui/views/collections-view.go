@@ -53,7 +53,18 @@ func (c CollectionsView) Update(msg tea.Msg) (ViewInterface, tea.Cmd) {
 		c.list, cmd = c.list.Update(msg)
 		cmds = append(cmds, cmd)
 	case messages.ItemAdded:
-		c.manager.Create(context.Background(), msg.Item)
+		_, err := c.manager.Create(context.Background(), msg.Item)
+		if err != nil {
+			return c, func() tea.Msg { 
+				return messages.ShowError{Message: err.Error()} 
+			}
+		}
+		return c, func() tea.Msg { 
+			return messages.RefreshItemsList{} 
+		}
+	case messages.RefreshItemsList:
+		c.list.RefreshItems()
+		return c, nil
 	case messages.ItemEdited:
 		c.manager.Update(context.Background(), msg.ItemID, msg.Item)
 	case messages.DeleteItem:
