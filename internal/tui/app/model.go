@@ -176,7 +176,7 @@ func (a AppModel) Header() string {
 func (a AppModel) Footer() string {
 	name := styles.ApplyGradientToFooter("REQ")
 	footerText := styles.FooterSegmentStyle.Render(a.Views[a.focusedView].GetFooterSegment())
-	version := styles.FooterVersionStyle.Width(a.width - lipgloss.Width(name) - lipgloss.Width(footerText)).Render("v0.1.0-alpha.3")
+	version := styles.FooterVersionStyle.Width(a.width - lipgloss.Width(name) - lipgloss.Width(footerText)).Render("v0.1.0-alpha.2")
 	return lipgloss.JoinHorizontal(lipgloss.Left, name, footerText, version)
 }
 
