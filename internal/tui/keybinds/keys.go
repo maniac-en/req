@@ -24,8 +24,8 @@ type Keymaps struct {
 
 var Keys = Keymaps{
 	Back: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "back"),
+		key.WithKeys("esc", "q"),
+		key.WithHelp("esc/q", "back"),
 	),
 	Up: key.NewBinding(
 		key.WithKeys("up", "k"),

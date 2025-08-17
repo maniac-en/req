@@ -89,6 +89,15 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keybinds.Keys.Quit):
 			return a, tea.Quit
+		case key.Matches(msg, keybinds.Keys.Back):
+			if a.focusedView == Endpoints {
+				return a, func() tea.Msg {
+					return messages.NavigateToView{
+						ViewName: string(Collections),
+						Data:     nil,
+					}
+				}
+			}
 		}
 	}
 
@@ -114,9 +123,17 @@ func (a AppModel) View() string {
 
 func (a AppModel) Help() string {
 	viewHelp := a.Views[a.focusedView].Help()
-	appHelp := append(viewHelp, a.keys...)
+	
+	var appHelp []key.Binding
+	appHelp = append(appHelp, a.keys...)
+	
+	if a.focusedView == Endpoints {
+		appHelp = append(appHelp, keybinds.Keys.Back)
+	}
+	
+	allHelp := append(viewHelp, appHelp...)
 	helpStruct := keybinds.Help{
-		Keys: appHelp,
+		Keys: allHelp,
 	}
 	return styles.HelpStyle.Render(a.help.View(helpStruct))
 }
