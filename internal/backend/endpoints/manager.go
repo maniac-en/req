@@ -256,3 +256,12 @@ func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data En
 	log.Info("updated endpoint", "id", endpoint.ID, "name", endpoint.Name)
 	return EndpointEntity{Endpoint: endpoint}, nil
 }
+
+func (e *EndpointsManager) GetCountsByCollections(ctx context.Context) ([]database.GetEndpointCountsByCollectionsRow, error) {
+	counts, err := e.DB.GetEndpointCountsByCollections(ctx)
+	if err != nil {
+		log.Error("failed to get endpoint counts", "error", err)
+		return nil, err
+	}
+	return counts, nil
+}

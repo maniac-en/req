@@ -105,6 +105,40 @@ func (q *Queries) GetEndpoint(ctx context.Context, id int64) (Endpoint, error) {
 	return i, err
 }
 
+const getEndpointCountsByCollections = `-- name: GetEndpointCountsByCollections :many
+SELECT collection_id, COUNT(*) as count
+FROM endpoints
+GROUP BY collection_id
+`
+
+type GetEndpointCountsByCollectionsRow struct {
+	CollectionID int64 `db:"collection_id" json:"collection_id"`
+	Count        int64 `db:"count" json:"count"`
+}
+
+func (q *Queries) GetEndpointCountsByCollections(ctx context.Context) ([]GetEndpointCountsByCollectionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEndpointCountsByCollections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEndpointCountsByCollectionsRow
+	for rows.Next() {
+		var i GetEndpointCountsByCollectionsRow
+		if err := rows.Scan(&i.CollectionID, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEndpointsByCollection = `-- name: ListEndpointsByCollection :many
 SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
 WHERE collection_id = ?

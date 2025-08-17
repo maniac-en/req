@@ -9,7 +9,6 @@ import (
 
 type CollectionEntity struct {
 	database.Collection
-	EndpointCount int
 }
 
 func (c CollectionEntity) GetID() int64 {
@@ -20,9 +19,6 @@ func (c CollectionEntity) GetName() string {
 	return c.Name
 }
 
-func (c CollectionEntity) GetEnpointCount() int {
-	return c.EndpointCount
-}
 
 func (c CollectionEntity) GetCreatedAt() time.Time {
 	return crud.ParseTimestamp(c.CreatedAt)

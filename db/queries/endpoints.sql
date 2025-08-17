@@ -31,6 +31,11 @@ LIMIT ? OFFSET ?;
 SELECT COUNT(*) FROM endpoints
 WHERE collection_id = ?;
 
+-- name: GetEndpointCountsByCollections :many
+SELECT collection_id, COUNT(*) as count
+FROM endpoints
+GROUP BY collection_id;
+
 -- name: UpdateEndpointName :one
 UPDATE endpoints
 SET

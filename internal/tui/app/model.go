@@ -149,7 +149,7 @@ func NewAppModel(ctx *Context) AppModel {
 		keys:        appKeybinds,
 	}
 	model.Views = map[ViewName]views.ViewInterface{
-		Collections: views.NewCollectionsView(model.ctx.Collections, 1),
+		Collections: views.NewCollectionsView(model.ctx.Collections, model.ctx.Endpoints, 1),
 		Endpoints:   views.NewEndpointsView(model.ctx.Endpoints, 2),
 	}
 	return model

@@ -64,41 +64,24 @@ func (q *Queries) GetCollection(ctx context.Context, id int64) (Collection, erro
 }
 
 const getCollections = `-- name: GetCollections :many
-SELECT
-    c.id,
-    c.name,
-    c.created_at,
-    c.updated_at,
-    COUNT(e.id) AS endpoint_count
-FROM collections c
-LEFT JOIN endpoints e ON e.collection_id = c.id
-GROUP BY c.id, c.name, c.created_at, c.updated_at
-ORDER BY c.created_at DESC
+SELECT id, name, created_at, updated_at FROM collections
+ORDER BY created_at DESC
 `
 
-type GetCollectionsRow struct {
-	ID            int64  `db:"id" json:"id"`
-	Name          string `db:"name" json:"name"`
-	CreatedAt     string `db:"created_at" json:"created_at"`
-	UpdatedAt     string `db:"updated_at" json:"updated_at"`
-	EndpointCount int64  `db:"endpoint_count" json:"endpoint_count"`
-}
-
-func (q *Queries) GetCollections(ctx context.Context) ([]GetCollectionsRow, error) {
+func (q *Queries) GetCollections(ctx context.Context) ([]Collection, error) {
 	rows, err := q.db.QueryContext(ctx, getCollections)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetCollectionsRow
+	var items []Collection
 	for rows.Next() {
-		var i GetCollectionsRow
+		var i Collection
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.EndpointCount,
 		); err != nil {
 			return nil, err
 		}
