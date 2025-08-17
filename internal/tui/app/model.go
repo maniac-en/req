@@ -58,13 +58,27 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.ChooseItem[optionsProvider.Option]:
 		switch msg.Source {
 		case "collections":
-			err := a.Views[Endpoints].SetState(msg.Item)
-			if err != nil {
-				log.Error(err.Error())
+			return a, func() tea.Msg {
+				return messages.NavigateToView{
+					ViewName: string(Endpoints),
+					Data:     msg.Item,
+				}
 			}
-			a.focusedView = Endpoints
-			return a, tea.Batch(cmds...)
 		}
+	case messages.NavigateToView:
+		a.Views[a.focusedView].OnBlur()
+		
+		if msg.Data != nil {
+			err := a.Views[ViewName(msg.ViewName)].SetState(msg.Data)
+			if err != nil {
+				log.Error("failed to set view state during navigation", "target_view", msg.ViewName, "error", err)
+				return a, nil
+			}
+		}
+		
+		a.focusedView = ViewName(msg.ViewName)
+		a.Views[a.focusedView].OnFocus()
+		return a, nil
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keybinds.Keys.Quit):
@@ -154,3 +168,4 @@ func NewAppModel(ctx *Context) AppModel {
 	}
 	return model
 }
+

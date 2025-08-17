@@ -18,3 +18,8 @@ type ChooseItem[T any] struct {
 }
 
 type DeactivateView struct{}
+
+type NavigateToView struct {
+	ViewName string
+	Data     interface{}
+}
