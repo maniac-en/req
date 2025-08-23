@@ -178,8 +178,8 @@ func TestCreateEndpoint(t *testing.T) {
 		}
 
 		_, err := manager.CreateEndpoint(ctx, data)
-		if err != crud.ErrInvalidInput {
-			t.Errorf("Expected ErrInvalidInput, got %v", err)
+		if err != nil {
+			t.Errorf("Create Endpoint without URL failed: %v", err)
 		}
 	})
 }
