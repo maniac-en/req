@@ -71,15 +71,7 @@ jobs:
             pr_author="${{ github.event.pull_request.user.login }}"
             
             # Create PR comment
-            comment_body="@$pr_author Go formatting is required for the following files:
-
-\`\`\`
-$unformatted
-\`\`\`
-
-Please run \`go fmt ./...\` to format your code and push the changes."
-
-            gh pr comment ${{ github.event.number }} --body "$comment_body"
+            gh pr comment ${{ github.event.number }} --body "@$pr_author Go code formatting is required. Please run \`go fmt ./...\` to format your code and push the changes. Check the [action logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details on which files need formatting."
             exit 1
           else
             echo "All Go code is properly formatted"
