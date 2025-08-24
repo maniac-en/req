@@ -177,9 +177,12 @@ func TestCreateEndpoint(t *testing.T) {
 			URL:          "",
 		}
 
-		_, err := manager.CreateEndpoint(ctx, data)
+		endpoint, err := manager.CreateEndpoint(ctx, data)
 		if err != nil {
-			t.Errorf("Create Endpoint without URL failed: %v", err)
+		  t.Errorf("Expected empty URL to be allowed, got error: %v", err)
+		}
+		if endpoint.URL != "" {
+		  t.Errorf("Expected empty URL to be preserved, got %s", endpoint.URL)
 		}
 	})
 }
