@@ -141,6 +141,7 @@ func main() {
 		endpointsManager,
 		httpManager,
 		historyManager,
+		Version,
 	)
 
 	// populate dummy data for demo

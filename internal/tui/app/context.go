@@ -13,6 +13,7 @@ type Context struct {
 	HTTP             *http.HTTPManager
 	History          *history.HistoryManager
 	DummyDataCreated bool
+	Version          string
 }
 
 func NewContext(
@@ -20,6 +21,7 @@ func NewContext(
 	endpoints *endpoints.EndpointsManager,
 	httpManager *http.HTTPManager,
 	history *history.HistoryManager,
+	version string,
 ) *Context {
 	return &Context{
 		Collections:      collections,
@@ -27,6 +29,7 @@ func NewContext(
 		HTTP:             httpManager,
 		History:          history,
 		DummyDataCreated: false,
+		Version:          version,
 	}
 }
 

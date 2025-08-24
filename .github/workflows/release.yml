@@ -83,16 +83,6 @@ jobs:
             
             **Usage:** Run `req` in your terminal
             
-            **Breaking Changes:**
-            Database schema has been updated. Please remove your existing database:
-            ```bash
-            # Linux/macOS
-            rm ~/.cache/req/app.db
-            
-            # Windows
-            del %LOCALAPPDATA%\req\app.db
-            ```
-            
             **Note:** This is early development software. Core HTTP execution features are still in progress.
             
             Full changelog: https://github.com/maniac-en/req/commits/${{ env.VERSION }}
