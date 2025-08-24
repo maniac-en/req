@@ -105,6 +105,80 @@ func (q *Queries) GetEndpoint(ctx context.Context, id int64) (Endpoint, error) {
 	return i, err
 }
 
+const getEndpointCountsByCollections = `-- name: GetEndpointCountsByCollections :many
+SELECT collection_id, COUNT(*) as count
+FROM endpoints
+GROUP BY collection_id
+`
+
+type GetEndpointCountsByCollectionsRow struct {
+	CollectionID int64 `db:"collection_id" json:"collection_id"`
+	Count        int64 `db:"count" json:"count"`
+}
+
+func (q *Queries) GetEndpointCountsByCollections(ctx context.Context) ([]GetEndpointCountsByCollectionsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEndpointCountsByCollections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEndpointCountsByCollectionsRow
+	for rows.Next() {
+		var i GetEndpointCountsByCollectionsRow
+		if err := rows.Scan(&i.CollectionID, &i.Count); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listEndpointsByCollection = `-- name: ListEndpointsByCollection :many
+SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
+WHERE collection_id = ?
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListEndpointsByCollection(ctx context.Context, collectionID int64) ([]Endpoint, error) {
+	rows, err := q.db.QueryContext(ctx, listEndpointsByCollection, collectionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Endpoint
+	for rows.Next() {
+		var i Endpoint
+		if err := rows.Scan(
+			&i.ID,
+			&i.CollectionID,
+			&i.Name,
+			&i.Method,
+			&i.Url,
+			&i.Headers,
+			&i.QueryParams,
+			&i.RequestBody,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listEndpointsPaginated = `-- name: ListEndpointsPaginated :many
 SELECT id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at FROM endpoints
 WHERE collection_id = ?
@@ -186,6 +260,38 @@ func (q *Queries) UpdateEndpoint(ctx context.Context, arg UpdateEndpointParams) 
 		arg.RequestBody,
 		arg.ID,
 	)
+	var i Endpoint
+	err := row.Scan(
+		&i.ID,
+		&i.CollectionID,
+		&i.Name,
+		&i.Method,
+		&i.Url,
+		&i.Headers,
+		&i.QueryParams,
+		&i.RequestBody,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateEndpointName = `-- name: UpdateEndpointName :one
+UPDATE endpoints
+SET
+    name = ?
+WHERE
+    id = ?
+RETURNING id, collection_id, name, method, url, headers, query_params, request_body, created_at, updated_at
+`
+
+type UpdateEndpointNameParams struct {
+	Name string `db:"name" json:"name"`
+	ID   int64  `db:"id" json:"id"`
+}
+
+func (q *Queries) UpdateEndpointName(ctx context.Context, arg UpdateEndpointNameParams) (Endpoint, error) {
+	row := q.db.QueryRowContext(ctx, updateEndpointName, arg.Name, arg.ID)
 	var i Endpoint
 	err := row.Scan(
 		&i.ID,

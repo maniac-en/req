@@ -64,7 +64,7 @@ func (e *EndpointsManager) List(ctx context.Context) ([]EndpointEntity, error) {
 	return nil, fmt.Errorf("use ListByCollection to list endpoints for a specific collection")
 }
 
-func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID int64, limit, offset int) (*PaginatedEndpoints, error) {
+func (e *EndpointsManager) ListByCollectionByPage(ctx context.Context, collectionID int64, limit, offset int) (*PaginatedEndpoints, error) {
 	if err := crud.ValidateID(collectionID); err != nil {
 		log.Warn("endpoint list failed collection validation", "collection_id", collectionID)
 		return nil, crud.ErrInvalidInput
@@ -103,6 +103,29 @@ func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID in
 	return result, nil
 }
 
+func (e *EndpointsManager) ListByCollection(ctx context.Context, collectionID int64) ([]EndpointEntity, error) {
+	if err := crud.ValidateID(collectionID); err != nil {
+		log.Warn("endpoint list failed collection validation", "collection_id", collectionID)
+		return nil, crud.ErrInvalidInput
+	}
+
+	log.Debug("listing endpoints", "collection_id", collectionID, "limit")
+
+	endpoints, err := e.DB.ListEndpointsByCollection(context.Background(), collectionID)
+	if err != nil && err != sql.ErrNoRows {
+		log.Warn("error occured while fetching endpoints", "collection_id", collectionID)
+		return nil, err
+	}
+
+	entities := make([]EndpointEntity, len(endpoints))
+	for i, endpoint := range endpoints {
+		entities[i] = EndpointEntity{Endpoint: endpoint}
+	}
+
+	log.Info("retrieved endpoints", "collection_id", collectionID, "count")
+	return entities, nil
+}
+
 func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData) (EndpointEntity, error) {
 	if err := crud.ValidateID(data.CollectionID); err != nil {
 		log.Warn("endpoint creation failed collection validation", "collection_id", data.CollectionID)
@@ -112,8 +135,8 @@ func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData
 		log.Warn("endpoint creation failed name validation", "name", data.Name)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
-	if data.Method == "" || data.URL == "" {
-		log.Warn("endpoint creation failed - method and URL required", "method", data.Method, "url", data.URL)
+	if data.Method == "" {
+		log.Warn("endpoint creation failed - method required", "method", data.Method)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
@@ -151,6 +174,37 @@ func (e *EndpointsManager) CreateEndpoint(ctx context.Context, data EndpointData
 	return EndpointEntity{Endpoint: endpoint}, nil
 }
 
+func (e *EndpointsManager) UpdateEndpointName(ctx context.Context, id int64, name string) (EndpointEntity, error) {
+	if err := crud.ValidateID(id); err != nil {
+		log.Warn("endpoint update failed ID validation", "id", id)
+		return EndpointEntity{}, crud.ErrInvalidInput
+	}
+
+	if err := crud.ValidateName(name); err != nil {
+		log.Warn("endpoint update failed name validation", "name", name)
+		return EndpointEntity{}, crud.ErrInvalidInput
+	}
+
+	log.Debug("updating endpoint name", "id", id, "name", name)
+
+	endpoint, err := e.DB.UpdateEndpointName(ctx, database.UpdateEndpointNameParams{
+		Name: name,
+		ID:   id,
+	})
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Debug("endpoint not found for update", "id", id)
+			return EndpointEntity{}, crud.ErrNotFound
+		}
+		log.Error("failed to update endpoint", "id", id, "name", name, "error", err)
+		return EndpointEntity{}, err
+	}
+
+	log.Info("updated endpoint", "id", endpoint.ID, "name", endpoint.Name)
+	return EndpointEntity{Endpoint: endpoint}, nil
+}
+
 func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data EndpointData) (EndpointEntity, error) {
 	if err := crud.ValidateID(id); err != nil {
 		log.Warn("endpoint update failed ID validation", "id", id)
@@ -160,8 +214,8 @@ func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data En
 		log.Warn("endpoint update failed name validation", "name", data.Name)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
-	if data.Method == "" || data.URL == "" {
-		log.Warn("endpoint update failed - method and URL required", "method", data.Method, "url", data.URL)
+	if data.Method == "" {
+		log.Warn("endpoint update failed - method required", "method", data.Method)
 		return EndpointEntity{}, crud.ErrInvalidInput
 	}
 
@@ -201,4 +255,13 @@ func (e *EndpointsManager) UpdateEndpoint(ctx context.Context, id int64, data En
 
 	log.Info("updated endpoint", "id", endpoint.ID, "name", endpoint.Name)
 	return EndpointEntity{Endpoint: endpoint}, nil
+}
+
+func (e *EndpointsManager) GetCountsByCollections(ctx context.Context) ([]database.GetEndpointCountsByCollectionsRow, error) {
+	counts, err := e.DB.GetEndpointCountsByCollections(ctx)
+	if err != nil {
+		log.Error("failed to get endpoint counts", "error", err)
+		return nil, err
+	}
+	return counts, nil
 }

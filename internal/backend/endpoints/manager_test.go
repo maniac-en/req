@@ -177,9 +177,12 @@ func TestCreateEndpoint(t *testing.T) {
 			URL:          "",
 		}
 
-		_, err := manager.CreateEndpoint(ctx, data)
-		if err != crud.ErrInvalidInput {
-			t.Errorf("Expected ErrInvalidInput, got %v", err)
+		endpoint, err := manager.CreateEndpoint(ctx, data)
+		if err != nil {
+			t.Errorf("Expected empty URL to be allowed, got error: %v", err)
+		}
+		if endpoint.Url != "" {
+			t.Errorf("Expected empty URL to be preserved, got %s", endpoint.Url)
 		}
 	})
 }
@@ -282,7 +285,7 @@ func TestListByCollection(t *testing.T) {
 	}
 
 	t.Run("Valid pagination", func(t *testing.T) {
-		result, err := manager.ListByCollection(ctx, collectionID, 2, 0)
+		result, err := manager.ListByCollectionByPage(ctx, collectionID, 2, 0)
 		if err != nil {
 			t.Fatalf("ListByCollection failed: %v", err)
 		}
@@ -308,7 +311,7 @@ func TestListByCollection(t *testing.T) {
 	})
 
 	t.Run("Second page", func(t *testing.T) {
-		result, err := manager.ListByCollection(ctx, collectionID, 2, 2)
+		result, err := manager.ListByCollectionByPage(ctx, collectionID, 2, 2)
 		if err != nil {
 			t.Fatalf("ListByCollection failed: %v", err)
 		}
@@ -328,7 +331,7 @@ func TestListByCollection(t *testing.T) {
 	})
 
 	t.Run("Last page", func(t *testing.T) {
-		result, err := manager.ListByCollection(ctx, collectionID, 2, 4)
+		result, err := manager.ListByCollectionByPage(ctx, collectionID, 2, 4)
 		if err != nil {
 			t.Fatalf("ListByCollection failed: %v", err)
 		}
@@ -348,7 +351,7 @@ func TestListByCollection(t *testing.T) {
 	})
 
 	t.Run("Invalid collection ID", func(t *testing.T) {
-		_, err := manager.ListByCollection(ctx, -1, 10, 0)
+		_, err := manager.ListByCollectionByPage(ctx, -1, 10, 0)
 		if err != crud.ErrInvalidInput {
 			t.Errorf("Expected ErrInvalidInput, got %v", err)
 		}
@@ -356,7 +359,7 @@ func TestListByCollection(t *testing.T) {
 
 	t.Run("Empty collection", func(t *testing.T) {
 		emptyCollectionID := testutils.CreateTestCollection(t, db, "Empty Collection")
-		result, err := manager.ListByCollection(ctx, emptyCollectionID, 10, 0)
+		result, err := manager.ListByCollectionByPage(ctx, emptyCollectionID, 10, 0)
 		if err != nil {
 			t.Fatalf("ListByCollection failed: %v", err)
 		}

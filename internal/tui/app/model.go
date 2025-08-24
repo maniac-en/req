@@ -1,186 +1,200 @@
 package app
 
 import (
-	"context"
+	"sort"
+	"strings"
 
+	"github.com/charmbracelet/bubbles/help"
+	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/maniac-en/req/internal/log"
+	optionsProvider "github.com/maniac-en/req/internal/tui/components/OptionsProvider"
+	"github.com/maniac-en/req/internal/tui/keybinds"
+	"github.com/maniac-en/req/internal/tui/messages"
+	"github.com/maniac-en/req/internal/tui/styles"
 	"github.com/maniac-en/req/internal/tui/views"
 )
 
-type ViewMode int
+type ViewName string
 
 const (
-	CollectionsViewMode ViewMode = iota
-	AddCollectionViewMode
-	EditCollectionViewMode
-	SelectedCollectionViewMode
+	Collections ViewName = "collections"
+	Endpoints   ViewName = "endpoints"
 )
 
-type Model struct {
-	ctx                    *Context
-	mode                   ViewMode
-	collectionsView        views.CollectionsView
-	addCollectionView      views.AddCollectionView
-	editCollectionView     views.EditCollectionView
-	selectedCollectionView views.SelectedCollectionView
-	width                  int
-	height                 int
-	selectedIndex          int
+type Heading struct {
+	name  string
+	order int
 }
 
-func NewModel(ctx *Context) Model {
-	collectionsView := views.NewCollectionsView(ctx.Collections)
-	if ctx.DummyDataCreated {
-		collectionsView.SetDummyDataNotification(true)
-	}
-
-	m := Model{
-		ctx:               ctx,
-		mode:              CollectionsViewMode,
-		collectionsView:   collectionsView,
-		addCollectionView: views.NewAddCollectionView(ctx.Collections),
-	}
-	return m
+type AppModel struct {
+	ctx         *Context
+	width       int
+	height      int
+	Views       map[ViewName]views.ViewInterface
+	focusedView ViewName
+	keys        []key.Binding
+	help        help.Model
+	errorMsg    string
 }
 
-func (m Model) Init() tea.Cmd {
-	return m.collectionsView.Init()
+func (a AppModel) Init() tea.Cmd {
+	return nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-
+	var cmds []tea.Cmd
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		isFiltering := m.mode == CollectionsViewMode && m.collectionsView.IsFiltering()
-
-		if !isFiltering {
-			switch msg.String() {
-			case "ctrl+c", "q":
-				if m.mode == CollectionsViewMode {
-					return m, tea.Quit
-				}
-				m.mode = CollectionsViewMode
-				return m, nil
-			case "a":
-				if m.mode == CollectionsViewMode {
-					m.selectedIndex = m.collectionsView.GetSelectedIndex()
-					m.mode = AddCollectionViewMode
-					if m.width > 0 && m.height > 0 {
-						sizeMsg := tea.WindowSizeMsg{Width: m.width, Height: m.height}
-						m.addCollectionView, _ = m.addCollectionView.Update(sizeMsg)
-					}
-					return m, nil
-				}
-			case "enter":
-				if m.mode == CollectionsViewMode {
-					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
-						m.selectedIndex = m.collectionsView.GetSelectedIndex()
-						m.mode = SelectedCollectionViewMode
-						if m.width > 0 && m.height > 0 {
-							m.selectedCollectionView = views.NewSelectedCollectionViewWithSize(m.ctx.Endpoints, m.ctx.HTTP, *selectedItem, m.width, m.height)
-						} else {
-							m.selectedCollectionView = views.NewSelectedCollectionView(m.ctx.Endpoints, m.ctx.HTTP, *selectedItem)
-						}
-						return m, m.selectedCollectionView.Init()
-					} else {
-						log.Error("issue getting currently selected collection")
-					}
-				}
-			case "e":
-				if m.mode == CollectionsViewMode {
-					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
-						m.selectedIndex = m.collectionsView.GetSelectedIndex()
-						m.mode = EditCollectionViewMode
-						m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, *selectedItem)
-						if m.width > 0 && m.height > 0 {
-							sizeMsg := tea.WindowSizeMsg{Width: m.width, Height: m.height}
-							m.editCollectionView, _ = m.editCollectionView.Update(sizeMsg)
-						}
-						return m, nil
-					} else {
-						log.Error("issue getting currently selected collection")
-					}
-				}
-			case "x":
-				if m.mode == CollectionsViewMode {
-					if selectedItem := m.collectionsView.GetSelectedItem(); selectedItem != nil {
-						return m, func() tea.Msg {
-							err := m.ctx.Collections.Delete(context.Background(), selectedItem.ID)
-							if err != nil {
-								return views.CollectionDeleteErrorMsg{Err: err}
-							}
-							return views.CollectionDeletedMsg{ID: selectedItem.ID}
-						}
-					}
-				}
-			}
-		}
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		if m.mode == CollectionsViewMode && !m.collectionsView.IsInitialized() {
-			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
-			if m.ctx.DummyDataCreated {
-				m.collectionsView.SetDummyDataNotification(true)
-			}
-			return m, m.collectionsView.Init()
+		a.height = msg.Height
+		a.width = msg.Width
+		for key, _ := range a.Views {
+			a.Views[key], cmd = a.Views[key].Update(tea.WindowSizeMsg{Height: a.AvailableHeight(), Width: msg.Width})
+			cmds = append(cmds, cmd)
 		}
-		if m.mode == CollectionsViewMode {
-			m.collectionsView, _ = m.collectionsView.Update(msg)
-		}
-	case views.BackToCollectionsMsg:
-		m.mode = CollectionsViewMode
-		if m.width > 0 && m.height > 0 {
-			m.collectionsView = views.NewCollectionsViewWithSize(m.ctx.Collections, m.width, m.height)
-			if m.ctx.DummyDataCreated {
-				m.collectionsView.SetDummyDataNotification(true)
+		cmds = append(cmds, cmd)
+		return a, tea.Batch(cmds...)
+	case messages.ChooseItem[optionsProvider.Option]:
+		switch msg.Source {
+		case "collections":
+			return a, func() tea.Msg {
+				return messages.NavigateToView{
+					ViewName: string(Endpoints),
+					Data:     msg.Item,
+				}
 			}
 		}
-		m.collectionsView.SetSelectedIndex(m.selectedIndex)
-		return m, m.collectionsView.Init()
-	case views.EditCollectionMsg:
-		m.mode = EditCollectionViewMode
-		m.editCollectionView = views.NewEditCollectionView(m.ctx.Collections, msg.Collection)
-		return m, nil
-	case views.CollectionDeletedMsg:
-		return m, m.collectionsView.Init()
-	case views.CollectionDeleteErrorMsg:
-		return m, nil
-	case views.CollectionCreatedMsg:
-		m.addCollectionView.ClearForm()
-		m.mode = CollectionsViewMode
-		m.selectedIndex = 0
-		m.collectionsView.SetSelectedIndex(m.selectedIndex)
-		return m, m.collectionsView.Init()
+	case messages.NavigateToView:
+		a.Views[a.focusedView].OnBlur()
+		
+		if msg.Data != nil {
+			err := a.Views[ViewName(msg.ViewName)].SetState(msg.Data)
+			if err != nil {
+				log.Error("failed to set view state during navigation", "target_view", msg.ViewName, "error", err)
+				return a, nil
+			}
+		}
+		
+		a.focusedView = ViewName(msg.ViewName)
+		a.Views[a.focusedView].OnFocus()
+		return a, nil
+	case messages.ShowError:
+		log.Error("user operation failed", "error", msg.Message)
+		a.errorMsg = msg.Message
+		return a, nil
+	case tea.KeyMsg:
+		a.errorMsg = ""
+		switch {
+		case key.Matches(msg, keybinds.Keys.Quit):
+			return a, tea.Quit
+		case key.Matches(msg, keybinds.Keys.Back):
+			if a.focusedView == Endpoints {
+				return a, func() tea.Msg {
+					return messages.NavigateToView{
+						ViewName: string(Collections),
+						Data:     nil,
+					}
+				}
+			}
+		}
 	}
 
-	switch m.mode {
-	case CollectionsViewMode:
-		m.collectionsView, cmd = m.collectionsView.Update(msg)
-	case AddCollectionViewMode:
-		m.addCollectionView, cmd = m.addCollectionView.Update(msg)
-	case EditCollectionViewMode:
-		m.editCollectionView, cmd = m.editCollectionView.Update(msg)
-	case SelectedCollectionViewMode:
-		m.selectedCollectionView, cmd = m.selectedCollectionView.Update(msg)
-	}
+	a.Views[a.focusedView], cmd = a.Views[a.focusedView].Update(msg)
+	cmds = append(cmds, cmd)
 
-	return m, cmd
+	return a, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
-	switch m.mode {
-	case CollectionsViewMode:
-		return m.collectionsView.View()
-	case AddCollectionViewMode:
-		return m.addCollectionView.View()
-	case EditCollectionViewMode:
-		return m.editCollectionView.View()
-	case SelectedCollectionViewMode:
-		return m.selectedCollectionView.View()
-	default:
-		return m.collectionsView.View()
+func (a AppModel) View() string {
+	footer := a.Footer()
+	header := a.Header()
+	view := a.Views[a.focusedView].View()
+	help := a.Help()
+	
+	if a.errorMsg != "" {
+		errorBar := styles.ErrorBarStyle.Width(a.width).Render("Error: " + a.errorMsg)
+		return lipgloss.JoinVertical(lipgloss.Top, header, view, errorBar, help, footer)
 	}
+	
+	return lipgloss.JoinVertical(lipgloss.Top, header, view, help, footer)
 }
+
+func (a AppModel) Help() string {
+	viewHelp := a.Views[a.focusedView].Help()
+	
+	var appHelp []key.Binding
+	appHelp = append(appHelp, a.keys...)
+	
+	if a.focusedView == Endpoints {
+		appHelp = append(appHelp, keybinds.Keys.Back)
+	}
+	
+	allHelp := append(viewHelp, appHelp...)
+	helpStruct := keybinds.Help{
+		Keys: allHelp,
+	}
+	return styles.HelpStyle.Render(a.help.View(helpStruct))
+}
+
+func (a *AppModel) AvailableHeight() int {
+	footer := a.Footer()
+	header := a.Header()
+	help := a.Help()
+	return a.height - lipgloss.Height(header) - lipgloss.Height(footer) - lipgloss.Height(help)
+}
+
+func (a AppModel) Header() string {
+	var b strings.Builder
+
+	// INFO: this might be a bit messy, could be a nice idea to look into OrderedMaps maybe?
+	views := []Heading{}
+	for key := range a.Views {
+		views = append(views, Heading{
+			name:  a.Views[key].Name(),
+			order: a.Views[key].Order(),
+		})
+	}
+	sort.Slice(views, func(i, j int) bool {
+		return views[i].order < views[j].order
+	})
+
+	for _, item := range views {
+		if item.name == a.Views[a.focusedView].Name() {
+			b.WriteString(styles.TabHeadingActive.Render(item.name))
+		} else {
+			b.WriteString(styles.TabHeadingInactive.Render(item.name))
+		}
+	}
+
+	b.WriteString(styles.TabHeadingInactive.Render(""))
+
+	return b.String()
+}
+
+func (a AppModel) Footer() string {
+	name := styles.ApplyGradientToFooter("REQ")
+	footerText := styles.FooterSegmentStyle.Render(a.Views[a.focusedView].GetFooterSegment())
+	version := styles.FooterVersionStyle.Width(a.width - lipgloss.Width(name) - lipgloss.Width(footerText)).Render("v0.1.0-alpha.2")
+	return lipgloss.JoinHorizontal(lipgloss.Left, name, footerText, version)
+}
+
+func NewAppModel(ctx *Context) AppModel {
+	appKeybinds := []key.Binding{
+		keybinds.Keys.Quit,
+	}
+
+	model := AppModel{
+		focusedView: Collections,
+		ctx:         ctx,
+		help:        help.New(),
+		keys:        appKeybinds,
+	}
+	model.Views = map[ViewName]views.ViewInterface{
+		Collections: views.NewCollectionsView(model.ctx.Collections, model.ctx.Endpoints, 1),
+		Endpoints:   views.NewEndpointsView(model.ctx.Endpoints, 2),
+	}
+	return model
+}
+

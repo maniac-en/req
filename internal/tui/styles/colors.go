@@ -3,19 +3,12 @@ package styles
 import "github.com/charmbracelet/lipgloss"
 
 var (
-	// Primary colors - Warm & Earthy
-	Primary   = lipgloss.Color("95")  // Muted reddish-brown (e.g., rust)
-	Secondary = lipgloss.Color("101") // Soft olive green
-	Success   = lipgloss.Color("107") // Earthy sage green
-	Warning   = lipgloss.Color("172") // Warm goldenrod/ochre
-	Error     = lipgloss.Color("160") // Deep muted red
-
-	// Text colors
-	TextPrimary   = lipgloss.Color("254") // Off-white/cream
-	TextSecondary = lipgloss.Color("246") // Medium warm gray
-	TextMuted     = lipgloss.Color("241") // Darker warm gray
-
-	// Background colors
-	BackgroundPrimary   = lipgloss.Color("235") // Very dark brown-gray
-	BackgroundSecondary = lipgloss.Color("238") // Dark brown-gray
+	footerNameBG      = lipgloss.Color("#1a1a1a")
+	footerNameFGFrom  = lipgloss.Color("#41A0AE")
+	footerNameFGTo    = lipgloss.Color("#77F07F")
+	accent            = lipgloss.Color("#77F07F")
+	headingForeground = lipgloss.Color("#000000")
+	footerSegmentBG   = lipgloss.Color("#262626")
+	footerSegmentFG   = lipgloss.Color("#656565")
+	helpFG            = lipgloss.Color("#3C3C3C")
 )

@@ -19,6 +19,7 @@ func (c CollectionEntity) GetName() string {
 	return c.Name
 }
 
+
 func (c CollectionEntity) GetCreatedAt() time.Time {
 	return crud.ParseTimestamp(c.CreatedAt)
 }

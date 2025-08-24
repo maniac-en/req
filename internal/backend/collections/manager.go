@@ -96,12 +96,17 @@ func (c *CollectionsManager) Delete(ctx context.Context, id int64) error {
 }
 
 func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, error) {
-	log.Debug("listing all collections with default pagination")
-	paginated, err := c.ListPaginated(ctx, 50, 0)
+	collections, err := c.DB.GetCollections(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return paginated.Collections, nil
+	
+	entities := make([]CollectionEntity, len(collections))
+	for i, collection := range collections {
+		entities[i] = CollectionEntity{Collection: collection}
+	}
+	
+	return entities, nil
 }
 
 func (c *CollectionsManager) ListPaginated(ctx context.Context, limit, offset int) (*PaginatedCollections, error) {
