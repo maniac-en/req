@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"runtime/debug"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/maniac-en/req/internal/backend/collections"
@@ -37,6 +38,18 @@ var (
 )
 
 var Version = "dev"
+
+func getVersion() string {
+	// Try to get version from build info (works with go install)
+	if info, ok := debug.ReadBuildInfo(); ok {
+		if info.Main.Version != "" && info.Main.Version != "(devel)" {
+			return info.Main.Version
+		}
+	}
+	
+	// Fall back to injected version (release builds)
+	return Version
+}
 
 func initPaths() error {
 	// setup paths using OS-appropriate cache directory
@@ -141,7 +154,7 @@ func main() {
 		endpointsManager,
 		httpManager,
 		historyManager,
-		Version,
+		getVersion(),
 	)
 
 	// populate dummy data for demo
