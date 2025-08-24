@@ -46,7 +46,7 @@ func getVersion() string {
 			return info.Main.Version
 		}
 	}
-	
+
 	// Fall back to injected version (release builds)
 	return Version
 }
