@@ -55,12 +55,12 @@ func (c CollectionsView) Update(msg tea.Msg) (ViewInterface, tea.Cmd) {
 	case messages.ItemAdded:
 		_, err := c.manager.Create(context.Background(), msg.Item)
 		if err != nil {
-			return c, func() tea.Msg { 
-				return messages.ShowError{Message: err.Error()} 
+			return c, func() tea.Msg {
+				return messages.ShowError{Message: err.Error()}
 			}
 		}
-		return c, func() tea.Msg { 
-			return messages.RefreshItemsList{} 
+		return c, func() tea.Msg {
+			return messages.RefreshItemsList{}
 		}
 	case messages.RefreshItemsList:
 		c.list.RefreshItems()
@@ -100,7 +100,7 @@ func (c CollectionsView) OnBlur() {
 
 func itemMapper(items []collections.CollectionEntity, endpointsManager *endpoints.EndpointsManager) []list.Item {
 	opts := make([]list.Item, len(items))
-	
+
 	counts, err := endpointsManager.GetCountsByCollections(context.Background())
 	if err != nil {
 		for i, item := range items {
@@ -112,12 +112,12 @@ func itemMapper(items []collections.CollectionEntity, endpointsManager *endpoint
 		}
 		return opts
 	}
-	
+
 	countMap := make(map[int64]int)
 	for _, count := range counts {
 		countMap[count.CollectionID] = int(count.Count)
 	}
-	
+
 	for i, item := range items {
 		count := countMap[item.GetID()]
 		opts[i] = optionsProvider.Option{
@@ -126,7 +126,7 @@ func itemMapper(items []collections.CollectionEntity, endpointsManager *endpoint
 			ID:      item.GetID(),
 		}
 	}
-	
+
 	return opts
 }
 

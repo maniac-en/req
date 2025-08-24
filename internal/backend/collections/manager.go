@@ -100,12 +100,12 @@ func (c *CollectionsManager) List(ctx context.Context) ([]CollectionEntity, erro
 	if err != nil {
 		return nil, err
 	}
-	
+
 	entities := make([]CollectionEntity, len(collections))
 	for i, collection := range collections {
 		entities[i] = CollectionEntity{Collection: collection}
 	}
-	
+
 	return entities, nil
 }
 

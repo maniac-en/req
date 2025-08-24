@@ -68,7 +68,7 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case messages.NavigateToView:
 		a.Views[a.focusedView].OnBlur()
-		
+
 		if msg.Data != nil {
 			err := a.Views[ViewName(msg.ViewName)].SetState(msg.Data)
 			if err != nil {
@@ -76,7 +76,7 @@ func (a AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return a, nil
 			}
 		}
-		
+
 		a.focusedView = ViewName(msg.ViewName)
 		a.Views[a.focusedView].OnFocus()
 		return a, nil
@@ -112,25 +112,25 @@ func (a AppModel) View() string {
 	header := a.Header()
 	view := a.Views[a.focusedView].View()
 	help := a.Help()
-	
+
 	if a.errorMsg != "" {
 		errorBar := styles.ErrorBarStyle.Width(a.width).Render("Error: " + a.errorMsg)
 		return lipgloss.JoinVertical(lipgloss.Top, header, view, errorBar, help, footer)
 	}
-	
+
 	return lipgloss.JoinVertical(lipgloss.Top, header, view, help, footer)
 }
 
 func (a AppModel) Help() string {
 	viewHelp := a.Views[a.focusedView].Help()
-	
+
 	var appHelp []key.Binding
 	appHelp = append(appHelp, a.keys...)
-	
+
 	if a.focusedView == Endpoints {
 		appHelp = append(appHelp, keybinds.Keys.Back)
 	}
-	
+
 	allHelp := append(viewHelp, appHelp...)
 	helpStruct := keybinds.Help{
 		Keys: allHelp,
@@ -197,4 +197,3 @@ func NewAppModel(ctx *Context) AppModel {
 	}
 	return model
 }
-
